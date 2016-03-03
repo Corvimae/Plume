@@ -1,0 +1,27 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreEngine", "CoreEngine\CoreEngineOSX.csproj", "{AE2832D5-B9A7-4272-B234-D053F06A943B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AE2832D5-B9A7-4272-B234-D053F06A943B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE2832D5-B9A7-4272-B234-D053F06A943B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE2832D5-B9A7-4272-B234-D053F06A943B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE2832D5-B9A7-4272-B234-D053F06A943B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.TextStylePolicy = $1
+		$1.FileWidth = 120
+		$1.TabWidth = 2
+		$1.IndentWidth = 2
+		$1.inheritsSet = Mono
+		$1.inheritsScope = text/plain
+		$1.scope = text/plain
+	EndGlobalSection
+EndGlobal
