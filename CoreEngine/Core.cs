@@ -2,6 +2,13 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using CoreEngine.World;
+using CoreEngine.Modularization;
+using CoreEngine.Utilities;
+using System.Diagnostics;
+using MoonSharp.Interpreter;
+using CoreEngine.Lua;
+using System;
+using System.Linq;
 
 namespace CoreEngine {
 	/// <summary>
@@ -10,7 +17,9 @@ namespace CoreEngine {
 	public class Core : Game {
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
+		SpriteFont systemFont;
 
+		Camera viewport;
 		Map activeMap;
 
 		public Core() {
@@ -21,7 +30,17 @@ namespace CoreEngine {
 
 		protected override void Initialize() {
 			base.Initialize();
+			UserData.RegisterAssembly();
+			UserData.RegisterType(typeof(Color));
+
+			Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.UserData, typeof(Color), t => ((CoreColor) t.UserData.Object).ToXNAColor());
+
+			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
+			Canvas.Initialize();
+
+			Module mainModule = new Module("DevModule");
 			activeMap = new Map(50, 50);
+			viewport = new Camera(0, 0);
 		}
 
 		/// <summary>
@@ -30,6 +49,8 @@ namespace CoreEngine {
 		/// </summary>
 		protected override void LoadContent() {
 			spriteBatch = new SpriteBatch(GraphicsDevice);
+			GameServices.AddService<SpriteBatch>(spriteBatch);
+			systemFont = Content.Load<SpriteFont>("Fonts/System");
 
 		}
 
@@ -38,7 +59,6 @@ namespace CoreEngine {
 		/// game-specific content.
 		/// </summary>
 		protected override void UnloadContent() {
-			// TODO: Unload any non ContentManager content here
 		}
 
 		/// <summary>
@@ -51,6 +71,18 @@ namespace CoreEngine {
 				Exit();
 			}
 
+			if(Keyboard.GetState().IsKeyDown(Keys.Up)) {
+				viewport.SetYPosition(viewport.GetYPosition() - 5);
+			} else if(Keyboard.GetState().IsKeyDown(Keys.Down)) {
+				viewport.SetYPosition(viewport.GetYPosition() + 5);
+			}
+
+			if (Keyboard.GetState().IsKeyDown(Keys.Left)) {
+				viewport.SetXPosition(viewport.GetXPosition() - 5);
+			} else if (Keyboard.GetState().IsKeyDown(Keys.Right)) {
+				viewport.SetXPosition(viewport.GetXPosition() + 5);
+			}
+
 			base.Update(gameTime);
 		}
 
@@ -60,8 +92,15 @@ namespace CoreEngine {
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw(GameTime gameTime) {
 			GraphicsDevice.Clear(Color.CornflowerBlue);
-			spriteBatch.Begin();
+			spriteBatch.Begin(transformMatrix: Matrix.CreateTranslation(-viewport.X, -viewport.Y, 0));
 			activeMap.draw(spriteBatch);
+
+			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
+			spriteBatch.End();
+
+			//UI Layer
+			spriteBatch.Begin();
+			spriteBatch.DrawString(systemFont, "FPS: " + frameRate, new Vector2(5, 5), Color.White);
 			spriteBatch.End();
 			base.Draw(gameTime);
 		}
