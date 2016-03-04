@@ -4,15 +4,22 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using CoreEngine.World;
+using CoreEngine.Modularization;
+using System.Diagnostics;
 
 namespace CoreEngine.World {
-	class MapTile {
-		public MapTile() {
-
+	class MapTile : ReferenceType {
+		ReferenceData Definition;
+		Vector2 Position;
+		public MapTile(string referencer, int x, int y) {
+			Definition = MapTile.FindReferenceData(referencer);
+			Position = new Vector2(x, y);
 		}
 
 		public void draw(SpriteBatch spriteBatch) {
-			spriteBatch.Draw(new Texture2D(spriteBatch.GraphicsDevice, 1, 1), new Vector2(0, 0), Color.Orange);
+			spriteBatch.Draw(Definition.Texture, new Vector2(Position.X * Map.TileSize, Position.Y * Map.TileSize), Color.Orange);
+			Definition.AttemptLuaFunctionCall("onDraw");
 		}
 	}
 }
