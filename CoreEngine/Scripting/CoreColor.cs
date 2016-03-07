@@ -1,13 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
-using MoonSharp.Interpreter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CoreEngine.Lua {
-	[MoonSharpUserData]
-	class CoreColor {
+namespace CoreEngine.Scripting {
+	public class CoreColor {
 
 		public static CoreColor White = new CoreColor(255, 255, 255, 255);
 		public static CoreColor Black = new CoreColor(0, 0, 0, 255);

@@ -5,10 +5,9 @@ using CoreEngine.World;
 using CoreEngine.Modularization;
 using CoreEngine.Utilities;
 using System.Diagnostics;
-using MoonSharp.Interpreter;
-using CoreEngine.Lua;
 using System;
 using System.Linq;
+using CoreEngine.Scripting;
 
 namespace CoreEngine {
 	/// <summary>
@@ -17,8 +16,6 @@ namespace CoreEngine {
 	public class Core : Game {
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
-		SpriteFont systemFont;
-
 		Camera viewport;
 		Map activeMap;
 
@@ -30,17 +27,15 @@ namespace CoreEngine {
 
 		protected override void Initialize() {
 			base.Initialize();
-			UserData.RegisterAssembly();
-			UserData.RegisterType(typeof(Color));
-
-			Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.UserData, typeof(Color), t => ((CoreColor) t.UserData.Object).ToXNAColor());
 
 			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
-			Canvas.Initialize();
 
-			Module mainModule = new Module("DevModule");
+			ModuleControl.RegisterModule("DevModule");
+
 			activeMap = new Map(50, 50);
 			viewport = new Camera(0, 0);
+			GameServices.AddService<Camera>(viewport);
+
 		}
 
 		/// <summary>
@@ -50,8 +45,7 @@ namespace CoreEngine {
 		protected override void LoadContent() {
 			spriteBatch = new SpriteBatch(GraphicsDevice);
 			GameServices.AddService<SpriteBatch>(spriteBatch);
-			systemFont = Content.Load<SpriteFont>("Fonts/System");
-
+			CoreFont.System = Content.Load<SpriteFont>("Fonts/System");
 		}
 
 		/// <summary>
@@ -100,7 +94,7 @@ namespace CoreEngine {
 
 			//UI Layer
 			spriteBatch.Begin();
-			spriteBatch.DrawString(systemFont, "FPS: " + frameRate, new Vector2(5, 5), Color.White);
+			spriteBatch.DrawString(CoreFont.System, "FPS: " + Math.Round(frameRate), new Vector2(5, 5), Color.White);
 			spriteBatch.End();
 			base.Draw(gameTime);
 		}
