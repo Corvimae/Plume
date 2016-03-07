@@ -5,13 +5,14 @@ using System.Linq;
 using System.Text;
 
 namespace CoreEngine.Modularization {
-	class ModuleDefinition {
+	public class ModuleDefinition {
 
 		[JsonProperty(PropertyName = "module")]
 		public ModuleMetadata ModuleInfo;
 	}
-	struct ModuleMetadata {
+	public struct ModuleMetadata {
 		public string Name;
 		public string Version;
+		public string Author;
 	}
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 
 namespace CoreEngine.Utilities {
-	public static class GameServices {
+	static class GameServices {
 		private static GameServiceContainer container;
 		public static GameServiceContainer Instance {
 			get {

@@ -10,55 +10,42 @@ using Newtonsoft.Json.Linq;
 using CoreEngine.Utilities;
 
 namespace CoreEngine.Modularization {
-	class Module {
+	public class Module {
 
-		DirectoryInfo directory;
+		DirectoryInfo Directory;
+
 		public ModuleDefinition Definition;
 		public Module(string directory) {
-			this.directory = new DirectoryInfo(ModuleControl.ModuleDirectory + "/" + directory);
+			this.Directory = new DirectoryInfo(ModuleControl.ModuleDirectory + "/" + directory);
 			if(LoadDefinition()) {
-				LoadModuleContents();
+				LoadModuleContents(this.Directory);
 			}
 		}
 		
-		private bool LoadModuleContents() {
-			foreach(DirectoryInfo subDirectory in directory.GetDirectories()) {
-				//Determine what type of object this is
-				Type moduleType = ModuleControl.MatchDirectoryToObjectType(subDirectory.Name);
-				if(moduleType != null) {
-					//Find all subdirectories in this directory, and process them each.
-					foreach (DirectoryInfo entityFolder in subDirectory.GetDirectories()) {
-						ReferenceData typeData = (ReferenceData) TypeReflector.InvokeStaticTypeMethod("DeserializeMetadata", moduleType, new Object[] {
-							File.ReadAllText(entityFolder.FullName + "/" + entityFolder.Name + ".json"), moduleType
-						});
-						typeData.Module = this;
-						typeData.Process();
-						TypeReflector.InvokeStaticTypeMethod("RegisterReference", moduleType, new object[] { typeData });
-						Log("Registered type " + typeData.GetReferencer());
-					}
-				} else {
-					LogError("Unknown type repository \"" + subDirectory.Name + "\"");
-					return false;
-				}
+		private void LoadModuleContents(DirectoryInfo directory) {
+			IEnumerable<FileInfo> rubyFiles = directory.GetFiles().Where(t => t.Extension == ".rb");
+			foreach(FileInfo script in rubyFiles) {
+				ModuleControl.RegisterEntity(script);
 			}
-			return true;
+			foreach(DirectoryInfo subDirectory in directory.GetDirectories()) {
+				LoadModuleContents(subDirectory);
+			}
 		}
 
 		private bool LoadDefinition() {
 			try {
-				this.Definition = JsonConvert.DeserializeObject<ModuleDefinition>(File.ReadAllText(directory.FullName + "/module.json"));
-				Log("initialized.");
+				this.Definition = JsonConvert.DeserializeObject<ModuleDefinition>(File.ReadAllText(Directory.FullName + "/module.json"));
+				Log("Module definition file loaded successfully.");
 				return true;
 			} catch (DirectoryNotFoundException) {
-				Debug.WriteLine("Module " + directory + " could not be found.");
+				Debug.WriteLine("Module " + Directory + " could not be found.");
 			} catch (FileNotFoundException) {
-				Debug.WriteLine("module.json missing for module " + directory);
+				Debug.WriteLine("module.json missing for module " + Directory);
 			} catch(JsonSerializationException) {
-				Debug.WriteLine("Failed to serialize module " + directory);
+				Debug.WriteLine("Failed to serialize module " + Directory);
 			}
 			return false;
 		}
-
 
 		private void LogError(object error) {
 			Debug.WriteLine("Error in module " + Definition.ModuleInfo.Name + ": " + error.ToString());

@@ -1,15 +1,17 @@
-﻿using Microsoft.Xna.Framework;
-using MoonSharp.Interpreter;
+﻿using CoreEngine.Utilities;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace CoreEngine.World {
-	[MoonSharpUserData]
-	class Camera {
+	public class Camera {
 		public float X;
 		public float Y;
+		public float Width;
+		public float Height;
 		public float XGoal;
 		public float YGoal;
 		public float Speed = 1.0f;
@@ -19,6 +21,9 @@ namespace CoreEngine.World {
 			this.Y = y;
 			this.XGoal = x;
 			this.YGoal = y;
+			GraphicsDevice graphicsDevice = GameServices.GetService<GraphicsDevice>();
+			this.Width = graphicsDevice.Viewport.Width;
+			this.Height = graphicsDevice.Viewport.Height;
 		}
 
 		public float GetXPosition() {
@@ -79,6 +84,14 @@ namespace CoreEngine.World {
 
 		public void SetCameraSpeed(float speed) {
 			this.Speed = speed;
+		}
+
+		public Vector2 GetStartPosition() {
+			return new Vector2(X, Y);
+		}
+		
+		public Vector2 GetEndPosition() {
+			return new Vector2(X + Width, Y + Height);
 		}
 
 		public void Update() {

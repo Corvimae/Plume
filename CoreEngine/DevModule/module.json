@@ -1,6 +1,7 @@
 ﻿{
 	"module": {
 		"name": "DevModule",
+		"author": "AcceptableIce",
 		"version": "0.1"
 	}
 }
