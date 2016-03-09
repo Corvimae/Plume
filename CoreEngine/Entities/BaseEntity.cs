@@ -47,7 +47,7 @@ namespace CoreEngine.Entities {
 		protected Texture2D RegisterTexture(string name, string fileName) {
 			try {
 				if(!Metadata.TextureRegistry.ContainsKey(name)) {
-					FileStream fileStream = new FileStream(Metadata.SourceDirectory.FullName + "\\" + fileName, FileMode.Open);
+					FileStream fileStream = new FileStream(Metadata.SourceDirectory.FullName + "/" + fileName, FileMode.Open);
 					Texture2D texture = Texture2D.FromStream(GameServices.GetService<GraphicsDevice>(), fileStream);
 					Metadata.TextureRegistry.Add(name, texture);
 					fileStream.Close();

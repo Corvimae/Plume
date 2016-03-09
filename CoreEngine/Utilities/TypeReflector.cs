@@ -11,14 +11,18 @@ namespace CoreEngine.Utilities {
 		}
 
 		public static dynamic InvokeMethod(object instance, string method, object[] arguments) {
-			var blah = instance.GetType().GetMembers();
-			return instance.GetType().InvokeMember(
-				method, 
-				BindingFlags.InvokeMethod | BindingFlags.FlattenHierarchy | BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public, 
-				null, 
-				instance, 
-				arguments
-			);
+			try {
+				return instance.GetType().InvokeMember(
+					method, 
+					BindingFlags.InvokeMethod | BindingFlags.FlattenHierarchy | BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public, 
+					null, 
+					instance, 
+					arguments
+				);
+			} catch (TargetInvocationException e) {
+				System.Diagnostics.Debug.WriteLine(e.InnerException.ToString());
+				return null;
+			}
 		}
 	}
 }
