@@ -55,31 +55,68 @@
     <Reference Include="MonoGame.Framework">
       <HintPath>..\packages\MonoGame.Framework.MacOS.3.3.0.0\lib\net45\MonoGame.Framework.dll</HintPath>
     </Reference>
-    <Reference Include="Tao.Sdl">
-      <HintPath>..\packages\MonoGame.Framework.MacOS.3.3.0.0\lib\net45\Tao.Sdl.dll</HintPath>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="IronRuby, Version=1.1.3.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\packages\IronRuby.1.1.3\lib\IronRuby.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK">
-      <HintPath>..\packages\MonoGame.Framework.MacOS.3.3.0.0\lib\net45\OpenTK.dll</HintPath>
+    <Reference Include="IronRuby.Libraries, Version=1.1.3.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\packages\IronRuby.1.1.3\lib\IronRuby.Libraries.dll</HintPath>
     </Reference>
-    <Reference Include="MoonSharp.Interpreter">
-      <HintPath>..\packages\MoonSharp.1.5.0.1\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
+    <Reference Include="IronRuby.Libraries.Yaml, Version=1.1.3.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\packages\IronRuby.1.1.3\lib\IronRuby.Libraries.Yaml.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamic, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\packages\IronRuby.1.1.3\lib\Microsoft.Dynamic.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Scripting, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\packages\IronRuby.1.1.3\lib\Microsoft.Scripting.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Scripting.Metadata, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\packages\IronRuby.1.1.3\lib\Microsoft.Scripting.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainOSX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core.cs" />
+    <Compile Include="Entities.Interfaces\IUpdatableEntity.cs" />
+    <Compile Include="Entities.Interfaces\IDrawableEntity.cs" />
+    <Compile Include="Entities\BaseEntity.cs" />
+    <Compile Include="Entities\EntityController.cs" />
+    <Compile Include="Entities\EntityData.cs" />
+    <Compile Include="Scripting\Canvas.cs" />
+    <Compile Include="Scripting\CoreColor.cs" />
+    <Compile Include="Modularization\CoreScript.cs" />
+    <Compile Include="Modularization\Module.cs" />
+    <Compile Include="Modularization\ModuleController.cs" />
+    <Compile Include="Modularization\ModuleDefinition.cs" />
+    <Compile Include="Scripting\CoreFont.cs" />
+    <Compile Include="Utilities\GameServices.cs" />
+    <Compile Include="Utilities\RubyConverter.cs" />
+    <Compile Include="Utilities\TypeReflector.cs" />
+    <Compile Include="World\Camera.cs" />
+    <Compile Include="World\DrawQueue.cs" />
     <Compile Include="World\Map.cs" />
-    <Compile Include="World\MapTile.cs" />
+    <Compile Include="Entities\MapTile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
-    <None Include="Content\Content.mgcb" />
     <None Include="packages.config" />
+    <None Include="Content\Fonts\System.spritefont" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Folder Include="DrawLayers\" />
     <Folder Include="World\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Content.mgcb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Fonts\System.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

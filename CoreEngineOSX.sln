@@ -1,7 +1,7 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreEngine", "CoreEngine\CoreEngineOSX.csproj", "{AE2832D5-B9A7-4272-B234-D053F06A943B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreEngineOSX", "CoreEngine\CoreEngineOSX.csproj", "{AE2832D5-B9A7-4272-B234-D053F06A943B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

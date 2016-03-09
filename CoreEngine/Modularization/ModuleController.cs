@@ -12,7 +12,11 @@ using IronRuby.Builtins;
 
 namespace CoreEngine.Modularization {
 	static class ModuleController {
+		#if WINDOWS
 		public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../";
+		#else
+		public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../../../";
+		#endif
 
 		public static Dictionary<string, Dictionary<string, CoreScript>> EntityRegistry = new Dictionary<string, Dictionary<string, CoreScript>>();
 		public static Dictionary<string, EntityData> EntityDataRegistry = new Dictionary<string, EntityData>();
