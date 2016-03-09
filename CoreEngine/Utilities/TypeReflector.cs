@@ -9,5 +9,16 @@ namespace CoreEngine.Utilities {
 		public static dynamic InvokeStaticTypeMethod(string method, Type type, Object[] arguments) {
 			return type.InvokeMember(method, BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, arguments);
 		}
+
+		public static dynamic InvokeMethod(object instance, string method, object[] arguments) {
+			var blah = instance.GetType().GetMembers();
+			return instance.GetType().InvokeMember(
+				method, 
+				BindingFlags.InvokeMethod | BindingFlags.FlattenHierarchy | BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public, 
+				null, 
+				instance, 
+				arguments
+			);
+		}
 	}
 }

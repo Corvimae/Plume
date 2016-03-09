@@ -3,5 +3,6 @@
 		"name": "DevModule",
 		"author": "AcceptableIce",
 		"version": "0.1"
-	}
+	},
+	"startup":  "Launch.rb"
 }
