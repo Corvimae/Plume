@@ -9,6 +9,9 @@ namespace CoreEngine.Modularization {
 
 		[JsonProperty(PropertyName = "module")]
 		public ModuleMetadata ModuleInfo;
+
+		[JsonProperty(PropertyName = "startup")]
+		public string StartupFile;
 	}
 	public struct ModuleMetadata {
 		public string Name;

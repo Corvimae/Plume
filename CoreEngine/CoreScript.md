@@ -71,7 +71,8 @@ By default, this method is empty, although some entity types may extend it (for 
 `register` to load its texture into memory.)
 
 If your entity requires loading textures or other operations that should occur only once, your entity should
-extend `register`.
+extend `register`. Extended classes should not attempt to load a shared texture again; the child class
+will automatically have references to all textures loaded by the parent class.
 
 IronRuby prevents Ruby's standard `initialize` method from calling its parent constructor. To get around this,
 CoreEngine provides a `create` method, which runs whenever an instance of the entity is created. **Your entity
@@ -103,3 +104,21 @@ fonts defined in the `CoreFont` class.
 
 New entity types are created similarly to entities, except they instead extend the `BaseModel` class. Note that
 entity types cannot be instanced; they must be extended upon with new entities.
+
+## IronRuby Limitations
+
+#### initialize and Model.new
+
+IronRuby does not allow superconstructors to be called from `initialize`. CoreEngine provides the
+`register` and `create` methods to bypass this.
+
+#### require_relative
+
+IronRuby does not support `require_relative`. CoreEngine automatically includes all parent directories
+in your module as search directories, so your `require` can just include the filename.
+
+#### Speed Concerns
+
+Reflexive calls to IronRuby methods are inherently slow. Any supplied method which takes a symbol
+referring to a method as an argument, such as `draw_on_layer`, will be expensive.
+

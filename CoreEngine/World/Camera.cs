@@ -7,94 +7,104 @@ using System.Linq;
 using System.Text;
 
 namespace CoreEngine.World {
-	public class Camera {
-		public float X;
-		public float Y;
-		public float Width;
-		public float Height;
-		public float XGoal;
-		public float YGoal;
-		public float Speed = 1.0f;
+	public static class Camera {
+		public static float X;
+		public static float Y;
+		public static float Scale;
+		public static float XGoal;
+		public static float YGoal;
+		public static float Speed = 1.0f;
 
-		public Camera(float x, float y) {
-			this.X = x;
-			this.Y = y;
-			this.XGoal = x;
-			this.YGoal = y;
-			GraphicsDevice graphicsDevice = GameServices.GetService<GraphicsDevice>();
-			this.Width = graphicsDevice.Viewport.Width;
-			this.Height = graphicsDevice.Viewport.Height;
+		public static void Initialize() {
+			X = 0;
+			Y = 0;
+			XGoal = X;
+			YGoal = Y;
+			Scale = 1.0f;
 		}
 
-		public float GetXPosition() {
+		public static float GetXPosition() {
 			return X;
 		}
 
-		public float GetYPosition() {
+		public static float GetYPosition() {
 			return Y;
 		}
 
-		public float GetXGoal() {
+		public static float GetXGoal() {
 			return XGoal;
 		}
 
-		public float GetYGoal() {
+		public static float GetYGoal() {
 			return YGoal;
 		}
 
-		public float GetSpeed() {
+		public static float GetSpeed() {
 			return Speed;
 		}
 
-		public void SetGoal(float x, float y) {
+		public static float GetScale() {
+			return Scale;
+		}
+
+		public static void SetScale(float scale) {
+			Scale = scale;
+		}
+
+		public static void SetGoal(float x, float y) {
 			XGoal = x;
 			YGoal = y;
 		}
 
-		public void SetGoal(Vector2 position) {
+		public static void SetGoal(Vector2 position) {
 			XGoal = position.X;
 			YGoal = position.Y;
 		}
 
-		public void SetXGoal(float x) {
+		public static void SetXGoal(float x) {
 			XGoal = x;
 		}
 
-		public void SetYGoal(float y) {
+		public static void SetYGoal(float y) {
 			YGoal = Y;
 		}
 
-		public void SetPosition(float x, float y) {
-			this.X = x;
-			this.Y = y;
+		public static void SetPosition(float x, float y) {
+			X = x;
+			Y = y;
 		}
 
-		public void SetPosition(Vector2 position) {
+		public static void SetPosition(Vector2 position) {
 			X = position.X;
 			Y = position.Y;
 		}
 
-		public void SetXPosition(float x) {
-			this.X = x;
+		public static void SetXPosition(float x) {
+			X = x;
 		}
 
-		public void SetYPosition(float y) {
-			this.Y = y;
+		public static void SetYPosition(float y) {
+			Y = y;
 		}
 
-		public void SetCameraSpeed(float speed) {
-			this.Speed = speed;
-		}
-
-		public Vector2 GetStartPosition() {
-			return new Vector2(X, Y);
+		public static void SetCameraSpeed(float speed) {
+			Speed = speed;
 		}
 		
-		public Vector2 GetEndPosition() {
-			return new Vector2(X + Width, Y + Height);
+		public static Rectangle GetBounds() {
+			GraphicsDevice graphicsDevice = GameServices.GetService<GraphicsDevice>();
+			return new Rectangle((int) X, (int) Y, (int) (graphicsDevice.Viewport.Width * (1 / Scale)), (int)(graphicsDevice.Viewport.Height * (1 / Scale)));
 		}
 
-		public void Update() {
+		public static bool IsOnCamera(Rectangle boundingBox) {
+			return GetBounds().Intersects(boundingBox);
+		}
+
+		public static Matrix GetTransformationMatrix() {
+			return Matrix.CreateTranslation(-X, -Y, 0) * Matrix.CreateScale(Scale, Scale, 1.0f);
+		}
+
+		public static void Update() {
 			//Trend towards our position
 			X += (XGoal - X) / (1 / Speed);
 			X += (YGoal - Y) / (1 / Speed);

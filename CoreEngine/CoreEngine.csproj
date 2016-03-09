@@ -39,7 +39,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Core.cs" />
+    <Compile Include="Entities.Interfaces\IUpdatableEntity.cs" />
+    <Compile Include="Entities.Interfaces\IDrawableEntity.cs" />
     <Compile Include="Entities\BaseEntity.cs" />
+    <Compile Include="Entities\EntityController.cs" />
+    <Compile Include="Entities\EntityData.cs" />
     <Compile Include="Scripting\Canvas.cs" />
     <Compile Include="Scripting\CoreColor.cs" />
     <Compile Include="Modularization\CoreScript.cs" />
@@ -50,8 +54,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripting\CoreFont.cs" />
     <Compile Include="Utilities\GameServices.cs" />
+    <Compile Include="Utilities\RubyConverter.cs" />
     <Compile Include="Utilities\TypeReflector.cs" />
     <Compile Include="World\Camera.cs" />
+    <Compile Include="World\DrawQueue.cs" />
     <Compile Include="World\Map.cs" />
     <Compile Include="Entities\MapTile.cs" />
   </ItemGroup>
@@ -102,6 +108,8 @@
     <None Include="Content\Fonts\System.spritefont" />
     <None Include="CoreScript.md" />
     <None Include="DevModule\module.json" />
+    <None Include="DevModule\Launch.rb" />
+    <None Include="DevModule\tiles\Stone\children\SubStone.rb" />
     <None Include="DevModule\tiles\Stone\Stone.rb" />
     <None Include="packages.config" />
   </ItemGroup>
