@@ -100,7 +100,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DevModule\tiles\Stone\Stone.png" />
+    <Content Include="Content\Modules\Core\tiles\Stone.png" />
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -108,15 +108,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Fonts\System.spritefont" />
+    <None Include="Content\Modules\Core\Main.rb" />
+    <None Include="Content\Modules\Core\module.json" />
     <None Include="CoreScript.md" />
-    <None Include="DevModule\module.json" />
-    <None Include="DevModule\Launch.rb" />
-    <None Include="DevModule\tiles\Stone\AStone.rb" />
-    <None Include="DevModule\tiles\Stone\Stone.rb" />
+    <None Include="Content\Modules\DevModule\module.json" />
+    <None Include="Content\Modules\DevModule\Main.rb" />
+    <None Include="Content\Modules\Core\tiles\AStone.rb" />
+    <None Include="Content\Modules\Core\tiles\Stone.rb" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Content\Modules\DevModule\tiles\Stone\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

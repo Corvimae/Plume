@@ -31,51 +31,49 @@ namespace CoreEngine {
 			base.Initialize();
 
 			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
-
-			ModuleController.RegisterModule("DevModule");
+			string[] modules = new string[] { "DevModule", "Core" };
+			foreach(string module in modules) ModuleController.RegisterModule(module);
+			ModuleController.ResolveDependencies();
+			ModuleController.ImportModules();
 
 			activeMap = new Map(50, 50);
 			Camera.Initialize();
+			Camera.UseEasing = true;
 		}
 
-		/// <summary>
-		/// LoadContent will be called once per game and is the place to load
-		/// all of your content.
-		/// </summary>
 		protected override void LoadContent() {
 			spriteBatch = new SpriteBatch(GraphicsDevice);
 			GameServices.AddService<SpriteBatch>(spriteBatch);
 			CoreFont.System = Content.Load<SpriteFont>("Fonts/System");
 		}
 
-		/// <summary>
-		/// UnloadContent will be called once per game and is the place to unload
-		/// game-specific content.
-		/// </summary>
 		protected override void UnloadContent() {
 		}
 
-		/// <summary>
-		/// Allows the game to run logic such as updating the world,
-		/// checking for collisions, gathering input, and playing audio.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Update(GameTime gameTime) {
 			if(GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
 				Exit();
 			}
 
 			if(Keyboard.GetState().IsKeyDown(Keys.Up)) {
-				Camera.SetYPosition(Camera.GetYPosition() - 5);
+				Camera.YGoal -= 10;
 			} else if(Keyboard.GetState().IsKeyDown(Keys.Down)) {
-				Camera.SetYPosition(Camera.GetYPosition() + 5);
+				Camera.YGoal += 10;
 			}
 
 			if(Keyboard.GetState().IsKeyDown(Keys.Left)) {
-				Camera.SetXPosition(Camera.GetXPosition() - 5);
+				Camera.XGoal -= 10;
 			} else if(Keyboard.GetState().IsKeyDown(Keys.Right)) {
-				Camera.SetXPosition(Camera.GetXPosition() + 5);
+				Camera.XGoal += 10;
 			}
+
+			if(Keyboard.GetState().IsKeyDown(Keys.OemMinus)) {
+				Camera.Scale -= 0.05f;
+			} else if(Keyboard.GetState().IsKeyDown(Keys.OemPlus)) {
+				Camera.Scale += 0.05f;
+			}
+
+			Camera.Update();
 
 			foreach(BaseEntity entity in EntityController.GetAllEntities()) {
 				if(entity.HasPropertyEnabled("update")) {

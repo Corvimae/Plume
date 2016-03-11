@@ -119,6 +119,7 @@ in your module as search directories, so your `require` can just include the fil
 
 #### Speed Concerns
 
-Reflexive calls to IronRuby methods are inherently slow. Any supplied method which takes a symbol
-referring to a method as an argument, such as `draw_on_layer`, will be expensive.
-
+Reflexive calls to IronRuby methods are inherently slow. CoreEngine attempts to optimize these
+calls as much as possible, but it's important to consoldate as much as possible.
+Any supplied method which takes a symbol referring to a method as an argument, such as
+`draw_on_layer`, will be expensive.

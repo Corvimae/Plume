@@ -25,11 +25,12 @@ namespace CoreEngine.Modularization {
 		public Module(string directory) {
 			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + directory);
 			FolderScope = Directory.GetDirectories("*.*", SearchOption.AllDirectories).Select(x => x.FullName).ToArray();
-			if(LoadDefinition()) {
-				LoadModuleClasses();
-			}
-			TryInvokeStartupMethod("after_load", new object[] { });
+			LoadDefinition();
+		}
 
+		public void BuildModule() {
+			LoadModuleClasses();
+			TryInvokeStartupMethod("after_load", new object[] { });
 		}
 
 		private void LoadModuleClasses() {

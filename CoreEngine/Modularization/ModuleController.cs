@@ -13,9 +13,9 @@ using IronRuby.Builtins;
 namespace CoreEngine.Modularization {
 	static class ModuleController {
 		#if WINDOWS
-		public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../";
+		public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../Content/Modules";
 		#else
-		public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../../../";
+		public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../../../Content/Modules";
 		#endif
 
 		public static Dictionary<string, Dictionary<string, CoreScript>> EntityRegistry = new Dictionary<string, Dictionary<string, CoreScript>>();
@@ -23,6 +23,7 @@ namespace CoreEngine.Modularization {
 
 		public static Dictionary<string, Module> ModuleRegistry = new Dictionary<string, Module>();
 
+		private static DependencyGraph<Module> dependencies;
 
 		static ModuleController() {
 			RegisterBuiltinTypes();
@@ -31,6 +32,40 @@ namespace CoreEngine.Modularization {
 		public static void RegisterModule(string moduleName) {
 			Module module = new Module(moduleName);
 			ModuleRegistry.Add(moduleName, module);
+		}
+
+		public static void ResolveDependencies() {
+			dependencies = new DependencyGraph<Module>();
+			Func<Module, Module, bool> moduleEquality = 
+				(a, b) => a.Definition.ModuleInfo.Name == b.Definition.ModuleInfo.Name && a.Definition.ModuleInfo.Author == b.Definition.ModuleInfo.Author;
+			foreach(Module module in ModuleRegistry.Values) {
+				DependencyNode<Module> node = dependencies.AddNode(module, moduleEquality);
+				if(module.Definition.Dependencies != null) {
+					foreach(KeyValuePair<string, string> dependency in module.Definition.Dependencies) {
+						string[] dependencyIdentifier = dependency.Key.Split('/');
+						//Find a module that matches version, author, and name
+						Module matchingModule = ModuleRegistry.Values.FirstOrDefault(a =>
+							a.Definition.ModuleInfo.Author == dependencyIdentifier[0] &&
+							a.Definition.ModuleInfo.Name == dependencyIdentifier[1] &&
+							a.Definition.ModuleInfo.Version == dependency.Value
+						);
+						if(matchingModule != null) {
+							DependencyNode<Module> parentNode = dependencies.AddNode(matchingModule, moduleEquality);
+							dependencies.AddDependency(parentNode, node);
+						} else {
+							throw new MissingDependencyModuleException(dependency.Key, dependency.Value);
+						}
+					}
+				}
+			}
+		}
+
+		public static void ImportModules() {
+			List<DependencyNode<Module>> processOrder = dependencies.GetProcessingOrder();
+			foreach(DependencyNode<Module> module in processOrder) {
+				Debug.WriteLine("Importing script data for " + module.Item.Definition.ModuleInfo.Name);
+				module.Item.BuildModule();
+			}
 		}
 
 		public static CoreScript FindEntityRecordByReferencer(string referencer) {
@@ -90,7 +125,7 @@ namespace CoreEngine.Modularization {
 					string baseParentTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
 					while(entityTypeName != "BaseClass" && entityType != null && !hasRegistered) {
 						entityTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
-						superTypeName = entityType.SuperClass.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
+						superTypeName = entityType.SuperClass != null ? entityType.SuperClass.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last() : null;
 						if(superTypeName == "BaseEntity") {
 							if(EntityRegistry.ContainsKey(entityTypeName)) {
 								EntityRegistry[entityTypeName].Add(entityName, entity);
@@ -154,6 +189,14 @@ namespace CoreEngine.Modularization {
 		public string Referencer;
 		public InvalidReferencerException(string referencer) {
 			this.Referencer = referencer;
+		}
+	}
+	public class MissingDependencyModuleException : Exception {
+		public string Identifier;
+		public string Version;
+		public MissingDependencyModuleException(string identifier, string version) {
+			Identifier = identifier;
+			Version = version;
 		}
 	}
 }

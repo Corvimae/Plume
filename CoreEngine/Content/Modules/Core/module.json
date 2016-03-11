@@ -1,8 +1,8 @@
 ﻿{
 	"module": {
-		"name": "DevModule",
+		"name": "Core",
 		"author": "AcceptableIce",
 		"version": "0.1"
 	},
-	"startup":  "Launch.rb"
+	"startup": "Main.rb"
 }

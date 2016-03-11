@@ -24,6 +24,7 @@ namespace CoreEngine.Entities {
 		protected Vector2 Position;
 		protected Vector2 DrawDimensions;
 
+		protected string Identifier;
 
 		public BaseEntity() {}
 
@@ -44,6 +45,12 @@ namespace CoreEngine.Entities {
 
 		protected virtual void Register() { }
 		protected virtual void Create() { }
+
+		protected virtual void Destroy() {
+			if(Identifier != null) {
+				EntityController.UnregisterEntity(Identifier);
+			}
+		}
 
 		protected Texture2D RegisterTexture(string name, string fileName) {
 			try {
@@ -102,8 +109,11 @@ namespace CoreEngine.Entities {
 		}
 
 		public void RegisterAs(string identifier) {
+			EntityController.UnregisterEntity(Identifier);
+			Identifier = identifier;
 			EntityController.RegisterEntity(identifier, this);
 		}
+
 
 		public Dictionary<int, DynamicDelegate> GetDrawActionRegistry() {
 			return Metadata.DrawActionRegistry;
