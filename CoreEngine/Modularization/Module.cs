@@ -15,7 +15,6 @@ namespace CoreEngine.Modularization {
 	public class Module {
 
 		DirectoryInfo Directory;
-		public string[] FolderScope;
 
 		public ModuleDefinition Definition;
 
@@ -24,7 +23,6 @@ namespace CoreEngine.Modularization {
 
 		public Module(string directory) {
 			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + directory);
-			FolderScope = Directory.GetDirectories("*.*", SearchOption.AllDirectories).Select(x => x.FullName).ToArray();
 			LoadDefinition();
 		}
 

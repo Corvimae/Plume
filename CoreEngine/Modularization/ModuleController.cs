@@ -90,8 +90,8 @@ namespace CoreEngine.Modularization {
 		public static BaseEntity CreateEntityByReferencer(string referencer, params object[] arguments) {
 			try {
 				CoreScript script = FindEntityRecordByReferencer(referencer);
-				BaseEntity instance = script.GetInstance<BaseEntity>(arguments);
-				instance.Initialize(EntityDataRegistry[referencer]);
+				BaseEntity instance = script.GetInstance<BaseEntity>();
+				instance.Initialize(EntityDataRegistry[referencer], arguments);
 				EntityController.RegisterEntityInstance(instance);
 				return instance;
 			} catch (MissingMethodException e) {

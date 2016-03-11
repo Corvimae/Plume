@@ -29,9 +29,9 @@ namespace CoreEngine.Entities {
 		public BaseEntity() {}
 
 
-		public void Initialize(EntityData metadata) {
+		public void Initialize(EntityData metadata, params object[] arguments) {
 			Metadata = metadata;
-			Create();
+			Create(arguments);
 		}
 
 		protected Texture2D GetTexture(string key) {
@@ -44,7 +44,7 @@ namespace CoreEngine.Entities {
 		}
 
 		protected virtual void Register() { }
-		protected virtual void Create() { }
+		protected virtual void Create(params object[] arguments) { }
 
 		protected virtual void Destroy() {
 			if(Identifier != null) {
@@ -100,11 +100,11 @@ namespace CoreEngine.Entities {
 			return DrawDimensions;
 		}
 
-		public void SetPosition(int x, int y) {
+		public void SetPosition(float x, float y) {
 			Position = new Vector2(x, y);
 		}
 
-		public void SetDimensions(int width, int height) {
+		public void SetDrawDimensions(int width, int height) {
 			DrawDimensions = new Vector2(width, height);
 		}
 

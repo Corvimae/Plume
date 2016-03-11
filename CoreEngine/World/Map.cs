@@ -14,18 +14,18 @@ namespace CoreEngine.World {
 		public static int TileSize = 32;
 		protected int Width;
 		protected int Height;
-		private MapTile[,] grid;
+		private BaseEntity[,] grid;
 
 		public Map(int width, int height) {
 			this.Width = width;
 			this.Height = height;
-			grid = new MapTile[Height, Width];
+			grid = new BaseEntity[Height, Width];
 			for (int x = 0; x < grid.GetLength(0); x++) {
 				for (int y = 0; y < grid.GetLength(1); y++) {
 					if(x % 2 == 0) {
-						grid[x, y] = (MapTile)ModuleController.CreateEntityByReferencer("MapTile.Stone", x, y);
+						grid[x, y] = ModuleController.CreateEntityByReferencer("MapTile.Stone", x, y);
 					} else {
-						grid[x, y] = (MapTile)ModuleController.CreateEntityByReferencer("MapTile.AStone", x, y);
+						grid[x, y] = ModuleController.CreateEntityByReferencer("MapTile.AStone", x, y);
 
 					}
 				}

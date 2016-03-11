@@ -114,8 +114,13 @@ IronRuby does not allow superconstructors to be called from `initialize`. CoreEn
 
 #### require_relative
 
-IronRuby does not support `require_relative`. CoreEngine automatically includes all parent directories
-in your module as search directories, so your `require` can just include the filename.
+IronRuby does not support `require_relative`. CoreEngine searches for any files named by 
+`require` starting in the root module directory (i.e. the folder holding all installed modules),
+and thus all `requires` should have a relative path starting from that point.
+
+For example, requiring `MapTile` from the `Core` module would be done using:
+
+    require 'Core/Entities/MapTile'
 
 #### Speed Concerns
 

@@ -87,14 +87,15 @@ namespace CoreEngine.World {
 					dY = dY < 0 ? -1 * MaxSpeed : MaxSpeed;
 				}
 
-				X += dX;
-				if(Math.Abs(XGoal - X) < 1) X = XGoal;
+				X += (int) dX;
+				if(Math.Abs(dX) < 0.01) X = XGoal;
 
-				Y += dY;
-				if(Math.Abs(YGoal - Y) < 1) Y = YGoal;
+				Y += (int) dY;
+				if(Math.Abs(dY) < 0.01) Y = YGoal;
 
-				Scale += (ScaleGoal - Scale) / (1 / Speed);
-				if(Math.Abs(ScaleGoal - Scale) < 1) Scale = ScaleGoal;
+				float dScale = (ScaleGoal - Scale) / (1 / Speed);
+				Scale += dScale;
+				if(Math.Abs(dScale) < 0.1) Scale = ScaleGoal;
 			} else {
 				X = XGoal;
 				Y = YGoal;

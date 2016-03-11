@@ -29,7 +29,7 @@ namespace CoreEngine.Modularization {
 			this.RawScript = File.ReadAllText(file.FullName);
 			this.SourceFile = file;
 			Engine = Ruby.CreateEngine();
-			Engine.SetSearchPaths(Module.FolderScope);
+			Engine.SetSearchPaths(new string[] { ModuleController.ModuleDirectory });
 			Engine.Runtime.LoadAssembly(typeof(BaseEntity).Assembly);
 		}
 

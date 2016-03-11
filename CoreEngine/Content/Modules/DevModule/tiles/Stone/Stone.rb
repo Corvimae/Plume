@@ -1,15 +1,16 @@
-﻿include CoreEngine::Entities
+﻿require 'Core/Entities/MapTile'
+
+include CoreEngine::Entities
 include CoreEngine::Scripting
 
 class Stone < MapTile
 	def	register
 		super
-		self.SetEntityProperties({ draw: true, update: true })
 		self.DrawOnLayer(2, :second_draw)
 		p "Registering 1"
 	end
 
-	def create
+	def create(arguments)
 		super
 		@iterations = 0
 	end
