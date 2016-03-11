@@ -58,5 +58,9 @@ namespace CoreEngine.Scripting {
 		public static Vector2 GetStringWidth(SpriteFont font, string text) {
 			return font.MeasureString(text);
 		}
+
+		public static Vector2 CreateVector2(float x, float y) {
+			return new Vector2(x, y);
+		}
 	}
 }

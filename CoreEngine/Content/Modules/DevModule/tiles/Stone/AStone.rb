@@ -1,4 +1,4 @@
-﻿require 'Stone'
+﻿require 'DevModule/tiles/Stone/Stone'
 
 include CoreEngine::Entities
 include CoreEngine::Scripting
@@ -7,10 +7,6 @@ class AStone < Stone
 	def	register
 		p "Registered AStone";
 		self.unregister_draw_on_layer 2
-	end
-
-	def create
-		super
 	end
 
 	def draw
