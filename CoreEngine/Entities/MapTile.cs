@@ -28,8 +28,6 @@ namespace CoreEngine.Entities {
 			texture = GetTexture("texture");
 		}
 
-
-
 		public override void Draw() {
 			Vector2 position = GetPosition();
 			Canvas.DrawTexture(@texture, position.X, position.Y, CoreColor.White);

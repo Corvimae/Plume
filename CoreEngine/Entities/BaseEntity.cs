@@ -4,6 +4,7 @@ using CoreEngine.Scripting;
 using CoreEngine.Utilities;
 using IronRuby.Builtins;
 using IronRuby.Runtime;
+using IronRuby.Runtime.Calls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -104,17 +105,18 @@ namespace CoreEngine.Entities {
 			EntityController.RegisterEntity(identifier, this);
 		}
 
-		public Dictionary<int, dynamic> GetDrawActionRegistry() {
+		public Dictionary<int, DynamicDelegate> GetDrawActionRegistry() {
 			return Metadata.DrawActionRegistry;
 		}
 		protected void DrawOnLayer(int level, RubySymbol method) {
 			if(!Metadata.DrawActionRegistry.ContainsKey(level)) {
-				Metadata.DrawActionRegistry.Add(level, method);
+				Metadata.DrawActionRegistry.Add(level, CreateDynamicDelegateForRubyMethod(method));
 			}
 		}
+
 		protected void DrawOnLayer(int level, string method) {
 			if(!Metadata.DrawActionRegistry.ContainsKey(level)) {
-				Metadata.DrawActionRegistry.Add(level, method);
+				Metadata.DrawActionRegistry.Add(level, CreateDynamicDelegateForCSharpMethod(method));
 			}
 		}
 
@@ -122,6 +124,23 @@ namespace CoreEngine.Entities {
 			if(Metadata.DrawActionRegistry.ContainsKey(level)) {
 				Metadata.DrawActionRegistry.Remove(level);
 			}
+		}
+
+		private DynamicDelegate CreateDynamicDelegateForRubyMethod(RubySymbol method) {
+			CoreScript script = ModuleController.FindEntityRecordByReferencer(GetReferencer());
+			RubyMethodInfo info = script.Engine.Operations.GetMember(this, (string)method.String).Info;
+			var rawDelegate = info.GetType().InvokeMember(
+					"GetDelegate",
+					BindingFlags.InvokeMethod | BindingFlags.FlattenHierarchy | BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.NonPublic,
+					null,
+					info,
+					new object[] { }
+				);
+			return new DynamicDelegate(rawDelegate, false, info.GetArity());
+		}
+
+		private DynamicDelegate CreateDynamicDelegateForCSharpMethod(string method) {
+			return new DynamicDelegate(Delegate.CreateDelegate(this.GetType(), this, method), true, this.GetType().GetMethod(method).GetParameters().Length);
 		}
 
 		public Rectangle GetDrawBoundry() {

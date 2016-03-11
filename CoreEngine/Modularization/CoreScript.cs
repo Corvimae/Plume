@@ -73,17 +73,5 @@ namespace CoreEngine.Modularization {
 			}
 			return null;
 		}
-		/*	dynamic instanceVariable;
-			var instanceVaraibleResult = Engine.Runtime.Globals.TryGetVariable(ClassReference.Name, out instanceVariable);
-			if(!instanceVaraibleResult && instanceVariable == null) {
-				throw new InvalidOperationException("Unable to find " + ClassReference.Name);
-			}
-
-			dynamic instance = Engine.Operations.CreateInstance(instanceVariable, arguments);
-
-			return new CoreScriptInstance(instance, Engine);*/
-
-
-
 	}
 }
