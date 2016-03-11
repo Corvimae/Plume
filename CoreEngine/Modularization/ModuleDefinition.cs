@@ -12,6 +12,9 @@ namespace CoreEngine.Modularization {
 
 		[JsonProperty(PropertyName = "startup")]
 		public string StartupFile;
+
+		[JsonProperty(PropertyName = "requires")]
+		public Dictionary<string, string> Dependencies;
 	}
 	public struct ModuleMetadata {
 		public string Name;

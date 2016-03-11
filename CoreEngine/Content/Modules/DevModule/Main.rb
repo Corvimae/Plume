@@ -1,6 +1,6 @@
 ﻿include CoreEngine::Entities
 
-class Launch
+class Main
 	def before_load
 		p "Module loading..."
 	end
@@ -16,5 +16,4 @@ class Launch
 	def draw
 		
 	end
-
 end

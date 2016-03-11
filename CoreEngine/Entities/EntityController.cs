@@ -24,6 +24,12 @@ namespace CoreEngine.Entities {
 				throw new EntityAlreadyRegisteredException(name);
 			}
 		}
+
+		public static void UnregisterEntity(string name) {
+			if(EntityRegistry.ContainsKey(name)) {
+				EntityRegistry.Remove(name);
+			}
+		}
 		
 		public static BaseEntity GetEntity(string name) {
 			if(EntityRegistry.ContainsKey(name)) {
