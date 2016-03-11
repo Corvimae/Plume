@@ -6,11 +6,9 @@ using CoreEngine.Modularization;
 using CoreEngine.Utilities;
 using System.Diagnostics;
 using System;
-using System.Linq;
 using CoreEngine.Scripting;
 using CoreEngine.Entities;
 using System.Collections.Generic;
-using IronRuby.Builtins;
 
 namespace CoreEngine {
 	/// <summary>
@@ -20,6 +18,8 @@ namespace CoreEngine {
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
 		Map activeMap;
+
+		public object AstUtils { get; private set; }
 
 		public Core() {
 			graphics = new GraphicsDeviceManager(this);
@@ -33,7 +33,7 @@ namespace CoreEngine {
 			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
 
 			ModuleController.RegisterModule("DevModule");
-	
+
 			activeMap = new Map(50, 50);
 			Camera.Initialize();
 		}
@@ -95,25 +95,24 @@ namespace CoreEngine {
 			Matrix transformationMatrix = Camera.GetTransformationMatrix();
 			Matrix inverseMatrix = Matrix.Invert(transformationMatrix);
 			spriteBatch.Begin(transformMatrix: transformationMatrix);
-			foreach(Module module in ModuleController.ModuleRegistry.Values) {
+			foreach(CoreEngine.Modularization.Module module in ModuleController.ModuleRegistry.Values) {
 				module.TryInvokeStartupMethod("draw", new object[] { });
 			}
 
 			foreach(List<DrawOperation> operationList in DrawQueue.ProcessAndReturnDrawQueue().Values) {
 				foreach(DrawOperation operation in operationList) {
-					if(operation.Identifier.GetType().Name == "RubySymbol") {
-						CoreScript script = ModuleController.FindEntityRecordByReferencer(operation.Entity.GetReferencer());
-						script.InvokeMethod(operation.Entity, (string)operation.Identifier.String, new object[] { });
+					if(operation.Delegate.IsCSharp) {
+						operation.Delegate.Delegate.Invoke();
 					} else {
-						TypeReflector.InvokeMethod(operation.Entity, operation.Identifier, null);
+						operation.Delegate.Delegate.Invoke(operation.Entity, null);
 					}
 				}
 			}
 
 			//UI Layer
 			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
-			spriteBatch.DrawString(CoreFont.System, 
-				"FPS: " + Math.Round(frameRate) + " | Draw: " + Math.Round((DateTime.Now - start).TotalMilliseconds) + "ms", 
+			spriteBatch.DrawString(CoreFont.System,
+				"FPS: " + Math.Round(frameRate) + " | Draw: " + Math.Round((DateTime.Now - start).TotalMilliseconds) + "ms",
 				Vector2.Transform(new Vector2(5, 5), inverseMatrix), Color.White);
 			spriteBatch.End();
 			base.Draw(gameTime);

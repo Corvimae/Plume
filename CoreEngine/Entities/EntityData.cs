@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using CoreEngine.Utilities;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +14,7 @@ namespace CoreEngine.Entities {
 		public DirectoryInfo SourceDirectory;
 
 		public Dictionary<string, Texture2D> TextureRegistry = new Dictionary<string, Texture2D>();
-		public Dictionary<int, dynamic> DrawActionRegistry = new Dictionary<int, dynamic>();
+		public Dictionary<int, DynamicDelegate> DrawActionRegistry = new Dictionary<int, DynamicDelegate>();
 
 		public Dictionary<string, bool> EntityProperties = new Dictionary<string, bool> {
 			{ "draw", false },
@@ -32,7 +33,7 @@ namespace CoreEngine.Entities {
 			data.EntityProperties = ShallowCopyDictionary<string, bool>(EntityProperties);
 			data.DrawLayer = DrawLayer;
 			data.TextureRegistry = ShallowCopyDictionary<string, Texture2D>(TextureRegistry);
-			data.DrawActionRegistry = ShallowCopyDictionary<int, dynamic>(DrawActionRegistry);
+			data.DrawActionRegistry = ShallowCopyDictionary<int, DynamicDelegate>(DrawActionRegistry);
 			return data;
 
 		}

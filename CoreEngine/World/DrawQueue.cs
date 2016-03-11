@@ -1,4 +1,5 @@
 ﻿using CoreEngine.Entities;
+using CoreEngine.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,19 +9,20 @@ namespace CoreEngine.World {
 	static class DrawQueue {
 		static SortedDictionary<int, List<DrawOperation>> DrawOperations = new SortedDictionary<int, List<DrawOperation>>();
 		
-		private static void AddDrawAction(int layer, dynamic identifier, BaseEntity instance) {
+		private static void AddDrawAction(int layer, DynamicDelegate del, BaseEntity instance) {
 			if(!DrawOperations.ContainsKey(layer)) {
 				DrawOperations.Add(layer, new List<DrawOperation>());
 			}
-			DrawOperations[layer].Add(new DrawOperation(instance, identifier));
+			DrawOperations[layer].Add(new DrawOperation(instance, del));
 		}
+
 		public static SortedDictionary<int, List<DrawOperation>> ProcessAndReturnDrawQueue() {
 			DrawOperations.Clear();
 			foreach(BaseEntity entity in EntityController.GetAllEntities()) {
 				if(entity.HasPropertyEnabled("draw") && Camera.IsOnCamera(entity.GetDrawBoundry())) {
-					Dictionary<int, dynamic> drawActions = entity.GetDrawActionRegistry();
-					AddDrawAction(entity.GetDrawLayer(), "Draw", entity);
-					foreach(KeyValuePair<int, dynamic> entry in drawActions) {
+					Dictionary<int, DynamicDelegate> drawActions = entity.GetDrawActionRegistry();
+					AddDrawAction(entity.GetDrawLayer(), new DynamicDelegate(Delegate.CreateDelegate(typeof(Action), entity, "Draw"), true, 0), entity);
+					foreach(KeyValuePair<int, DynamicDelegate> entry in drawActions) {
 						AddDrawAction(entry.Key, entry.Value, entity);
 					}
 				}
@@ -30,10 +32,10 @@ namespace CoreEngine.World {
 	}
 	struct DrawOperation {
 		public BaseEntity Entity;
-		public dynamic Identifier;
-		public DrawOperation(BaseEntity entity, dynamic identifier) {
+		public DynamicDelegate Delegate;
+		public DrawOperation(BaseEntity entity, DynamicDelegate del) {
 			this.Entity = entity;
-			this.Identifier = identifier;
+			this.Delegate = del;
 		}
 	}
 }

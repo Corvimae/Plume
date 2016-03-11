@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CoreEngine.Utilities;
 using IronRuby.Builtins;
+using System.Text.RegularExpressions;
 
 namespace CoreEngine.Modularization {
 	public class Module {
@@ -25,12 +26,22 @@ namespace CoreEngine.Modularization {
 			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + directory);
 			FolderScope = Directory.GetDirectories("*.*", SearchOption.AllDirectories).Select(x => x.FullName).ToArray();
 			if(LoadDefinition()) {
-				LoadModuleContents(this.Directory);
+				LoadModuleClasses();
 			}
+			TryInvokeStartupMethod("after_load", new object[] { });
+
 		}
-		
-		private void LoadModuleContents(DirectoryInfo directory) {
-			IEnumerable<FileInfo> rubyFiles = directory.GetFiles().Where(t => t.Extension == ".rb");
+
+		private void LoadModuleClasses() {
+			DependencyGraph<FileInfo> dependencyGraph = new DependencyGraph<FileInfo>();
+			IEnumerable<FileInfo> rubyFiles = System.IO.Directory.GetFiles(this.Directory.FullName, "*.rb", SearchOption.AllDirectories).Select(t => new FileInfo(t));
+
+			//Find lines of syntax class [a] | OR | class [a] < [b]
+			Regex classExtractor = new Regex(@"class ([A-Za-z]+)(?: < ([A-Za-z]+))?", RegexOptions.Multiline);
+			Func<FileInfo, FileInfo, bool> FileInfoEqualityChecker = delegate (FileInfo existing, FileInfo file) {
+				return existing.FullName == file.FullName;
+			};
+
 			foreach(FileInfo script in rubyFiles) {
 				if(script.Name == Definition.StartupFile) {
 					Startup = new CoreScript(script, this);
@@ -38,15 +49,30 @@ namespace CoreEngine.Modularization {
 					StartupInstance = Startup.GetInstance<RubyObject>(new object[] { });
 					TryInvokeStartupMethod("before_load", new object[] { });
 				} else {
-					ModuleController.RegisterEntity(this, script);
+					//Get the extended class for this script
+					DependencyNode<FileInfo> classNode = dependencyGraph.AddNode(script, FileInfoEqualityChecker);
+					string rawScript = File.ReadAllText(script.FullName);
+					Match classMatch = classExtractor.Match(rawScript);
+					if(classMatch != null && classMatch.Groups.Count == 3) {
+						string baseClass = classMatch.Groups[2].Value;
+						FileInfo dependency = rubyFiles.FirstOrDefault(t => {
+							return Path.GetFileNameWithoutExtension(t.Name) == baseClass;
+						});
+						//If the dependency is not found, it must belong to an outside source.
+						if(dependency != null) {
+							DependencyNode<FileInfo> baseNode = dependencyGraph.AddNode(dependency, FileInfoEqualityChecker);
+							dependencyGraph.AddDependency(baseNode, classNode);
+						}
+					}
 				}
 			}
-			TryInvokeStartupMethod("after_load", new object[] { });
 
-			foreach(DirectoryInfo subDirectory in directory.GetDirectories()) {
-				LoadModuleContents(subDirectory);
+			List<DependencyNode<FileInfo>> processOrder = dependencyGraph.GetProcessingOrder();
+			foreach(DependencyNode<FileInfo> file in processOrder) {
+				ModuleController.RegisterEntity(this, file.Item);
 			}
 		}
+
 
 		public dynamic InvokeStartupMethod(string method, params object[] arguments) {
 			if(Startup != null) {
@@ -67,9 +93,9 @@ namespace CoreEngine.Modularization {
 				this.Definition = JsonConvert.DeserializeObject<ModuleDefinition>(File.ReadAllText(Directory.FullName + "/module.json"));
 				Log("Module definition file loaded successfully.");
 				return true;
-			} catch (DirectoryNotFoundException) {
+			} catch(DirectoryNotFoundException) {
 				Debug.WriteLine("Module " + Directory + " could not be found.");
-			} catch (FileNotFoundException) {
+			} catch(FileNotFoundException) {
 				Debug.WriteLine("module.json missing for module " + Directory);
 			} catch(JsonSerializationException) {
 				Debug.WriteLine("Failed to serialize module " + Directory);

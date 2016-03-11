@@ -31,7 +31,6 @@ namespace CoreEngine.Modularization {
 		public static void RegisterModule(string moduleName) {
 			Module module = new Module(moduleName);
 			ModuleRegistry.Add(moduleName, module);
-
 		}
 
 		public static CoreScript FindEntityRecordByReferencer(string referencer) {
