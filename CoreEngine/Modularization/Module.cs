@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using CoreEngine.Utilities;
 using IronRuby.Builtins;
 using System.Text.RegularExpressions;
+using CoreEngine.Entities;
 
 namespace CoreEngine.Modularization {
 	public class Module {
@@ -19,7 +20,7 @@ namespace CoreEngine.Modularization {
 		public ModuleDefinition Definition;
 
 		CoreScript Startup;
-		public RubyObject StartupInstance;
+		public CoreObject StartupInstance;
 
 		public Module(string directory) {
 			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + directory);
@@ -28,7 +29,7 @@ namespace CoreEngine.Modularization {
 
 		public void BuildModule() {
 			LoadModuleClasses();
-			TryInvokeStartupMethod("after_load", new object[] { });
+			Startup.TryInvokeMethod(StartupInstance, "after_load", new object[] { });
 		}
 
 		private void LoadModuleClasses() {
@@ -45,8 +46,10 @@ namespace CoreEngine.Modularization {
 				if(script.Name == Definition.StartupFile) {
 					Startup = new CoreScript(script, this);
 					Startup.Compile();
-					StartupInstance = Startup.GetInstance<RubyObject>(new object[] { });
-					TryInvokeStartupMethod("before_load", new object[] { });
+					StartupInstance = Startup.GetInstance<CoreObject>(new object[] { });
+					StartupInstance.SetReferenceScript(Startup);
+					StartupInstance.Metadata = new CoreObjectData();
+					Startup.TryInvokeMethod(StartupInstance, "before_load", new object[] { });
 				} else {
 					//Get the extended class for this script
 					DependencyNode<FileInfo> classNode = dependencyGraph.AddNode(script, FileInfoEqualityChecker);

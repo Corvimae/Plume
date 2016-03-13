@@ -26,7 +26,6 @@ namespace CoreEngine.World {
 						grid[x, y] = ModuleController.CreateEntityByReferencer("MapTile.Stone", x, y);
 					} else {
 						grid[x, y] = ModuleController.CreateEntityByReferencer("MapTile.AStone", x, y);
-
 					}
 				}
 			}

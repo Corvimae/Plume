@@ -94,27 +94,44 @@
     <Compile Include="Modularization\ModuleController.cs" />
     <Compile Include="Modularization\ModuleDefinition.cs" />
     <Compile Include="Scripting\CoreFont.cs" />
+    <Compile Include="Utilities\DependencyGraph.cs" />
+    <Compile Include="Utilities\DynamicDelegate.cs" />
     <Compile Include="Utilities\GameServices.cs" />
     <Compile Include="Utilities\RubyConverter.cs" />
-    <Compile Include="Utilities\TypeReflector.cs" />
+    <Compile Include="Utilities\TypeServices.cs" />
     <Compile Include="World\Camera.cs" />
-    <Compile Include="World\DrawQueue.cs" />
     <Compile Include="World\Map.cs" />
-    <Compile Include="Entities\MapTile.cs" />
+    <Compile Include="Events\EventController.cs" />
+    <Compile Include="Events\EventDefinition.cs" />
+    <Compile Include="Events\EventRequest.cs" />
+    <Compile Include="Entities\CoreObject.cs" />
+    <Compile Include="Events\EventBundle.cs" />
+    <Compile Include="Utilities\DrawQueue.cs" />
+    <Compile Include="Entities\Animation.cs" />
+    <Compile Include="Entities\CoreObjectData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
+    <None Include="Content\Content.mgcb" />
     <None Include="packages.config" />
-    <None Include="Content\Fonts\System.spritefont" />
+    <None Include="Content\Modules\Core\Main.rb" />
+    <None Include="Content\Modules\Core\Entities\MapTile.rb" />
+    <None Include="Content\Modules\DevModule\Main.rb" />
+    <None Include="Content\Modules\DevModule\tiles\Stone\AStone.rb" />
+    <None Include="Content\Modules\DevModule\tiles\Stone\Stone.rb" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="World\" />
+    <Folder Include="Events\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\Content.mgcb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <BundleResource Include="Content\Modules\Core\module.json" />
+    <BundleResource Include="Content\Modules\DevModule\module.json" />
+    <BundleResource Include="Content\Modules\DevModule\tiles\Stone\Stone.png" />
+    <BundleResource Include="Content\Modules\DevModule\excavator.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="Content\Fonts\System.xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

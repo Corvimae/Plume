@@ -14,7 +14,7 @@ using CoreEngine.Entities;
 using CoreEngine.Scripting;
 
 namespace CoreEngine.Modularization {
-	class CoreScript {
+	public class CoreScript {
 		public Module Module;
 		public ScriptEngine Engine;
 		protected string RawScript;
@@ -58,14 +58,13 @@ namespace CoreEngine.Modularization {
 		}
 
 		public dynamic InvokeMethod(object instance, string name, params object[] arguments) {
-			return Engine.Operations.InvokeMember(instance, name, new object[] { });
+ 			return Engine.Operations.InvokeMember(instance, name, new object[] { });
 		}
 
 		public dynamic InvokeMethod(string name, params object[] arguments) {
 			RubyObject instance = GetInstance<RubyObject>(new object[] { });
 			return Engine.Operations.InvokeMember(instance, name, new object[] { });
 		}
-		
 
 		public dynamic TryInvokeMethod(object instance, string name, params object[] arguments) {
 			if(Engine.Operations.GetMember(instance, name) != null) {

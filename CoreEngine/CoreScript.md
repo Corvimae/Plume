@@ -1,4 +1,4 @@
-﻿# CoreEngine Module Guide
+# CoreEngine Module Guide
 
 ## Creating a Module
 
@@ -41,13 +41,10 @@ structure however you like.
 
 ### Creating a New Entity
 
-A new entity can be defined by creating a new `.rb` file somewhere in your module's folder. The name of this
-file isn't used by CoreEngine, but we recommend giving the file the same name as your class.
+A new entity can be defined by creating a new `.rb` file somewhere in your module's folder. The name of the file must match the class name to ensure class dependencies resolve in the correct order.
 
-All entities must extend the `BaseEntity` class or one of its decendants. CoreEngine comes with the following
-entity types predefined:
- 
-* MapTile
+All CoreEngine classes must extend the `CoreObject` class or one of its decendents. CoreEngine also comes with the `BaseEntity` type, which contains methods for
+drawing and updating.
 
 If your entity is going to extend one of CoreEngine's predetermined entity types (or if it is to be a new entity type),
 the module `CoreEngine::Entities` must be imported. Usually you will also import `CoreEngine::Scripting`, which 

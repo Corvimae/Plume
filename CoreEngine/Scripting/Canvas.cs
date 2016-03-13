@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using IronRuby.Runtime;
 using CoreEngine.World;
+using CoreEngine.Entities;
 
 namespace CoreEngine.Scripting {
 	public class Canvas {
@@ -35,7 +36,13 @@ namespace CoreEngine.Scripting {
 		public static void DrawTexture(Texture2D sprite, float x, float y, CoreColor color) {
 			spriteBatch.Draw(sprite, new Vector2(x, y), color.ToXNAColor());
 		}
+		public static void DrawTexture(Texture2D sprite, Vector2 position, Rectangle clip, CoreColor color, Vector2 origin, SpriteEffects effect) {
+			spriteBatch.Draw(sprite, position, clip, color.ToXNAColor(), 0.0f, origin, 1.0f, effect, 0.0f);
+		}
 
+		public static void DrawAnimation(Animation animation, float x, float y, CoreColor color) {
+			animation.Draw(new Vector2(x, y), color);
+		}
 		public static void DrawString(SpriteFont font, string text, float x, float y, CoreColor color) {
 			Vector2 dimensions = font.MeasureString(text);
 			if(CameraBounds.Intersects(new Rectangle((int)x, (int)y, (int)dimensions.X, (int)dimensions.Y))) {
