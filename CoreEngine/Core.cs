@@ -6,9 +6,11 @@ using CoreEngine.Modularization;
 using CoreEngine.Utilities;
 using System.Diagnostics;
 using System;
+using System.Linq;
 using CoreEngine.Scripting;
 using CoreEngine.Entities;
 using System.Collections.Generic;
+using CoreEngine.Events;
 
 namespace CoreEngine {
 	/// <summary>
@@ -18,8 +20,9 @@ namespace CoreEngine {
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
 		Map activeMap;
+		DrawQueue drawQueue = new DrawQueue();
 
-		public object AstUtils { get; private set; }
+		private Keys[] previousFrameKeys = new Keys[0];
 
 		public Core() {
 			graphics = new GraphicsDeviceManager(this);
@@ -38,7 +41,7 @@ namespace CoreEngine {
 
 			activeMap = new Map(50, 50);
 			Camera.Initialize();
-			Camera.UseEasing = true;
+			Camera.UseEasing = true;				
 		}
 
 		protected override void LoadContent() {
@@ -55,25 +58,41 @@ namespace CoreEngine {
 				Exit();
 			}
 
-			if(Keyboard.GetState().IsKeyDown(Keys.Up)) {
+			//Handle Input
+
+			KeyboardState keyboard = Keyboard.GetState();
+
+			if(keyboard.IsKeyDown(Keys.Up)) {
 				Camera.YGoal -= 10;
-			} else if(Keyboard.GetState().IsKeyDown(Keys.Down)) {
+			} else if(keyboard.IsKeyDown(Keys.Down)) {
 				Camera.YGoal += 10;
 			}
 
-			if(Keyboard.GetState().IsKeyDown(Keys.Left)) {
+			if(keyboard.IsKeyDown(Keys.Left)) {
 				Camera.XGoal -= 10;
-			} else if(Keyboard.GetState().IsKeyDown(Keys.Right)) {
+			} else if(keyboard.IsKeyDown(Keys.Right)) {
 				Camera.XGoal += 10;
 			}
 
-			if(Keyboard.GetState().IsKeyDown(Keys.OemMinus)) {
+			if(keyboard.IsKeyDown(Keys.OemMinus)) {
 				Camera.Scale -= 0.05f;
-			} else if(Keyboard.GetState().IsKeyDown(Keys.OemPlus)) {
+			} else if(keyboard.IsKeyDown(Keys.OemPlus)) {
 				Camera.Scale += 0.05f;
 			}
 
+			if(IsKeyPressed(keyboard, Keys.E)) {
+				EventController.Call("pause", new EventBundle(new Dictionary<object, object>()));
+			}
+
+			previousFrameKeys = keyboard.GetPressedKeys();
+
+			//End Input Section
+
 			Camera.Update();
+
+			foreach(CoreEngine.Modularization.Module module in ModuleController.ModuleRegistry.Values) {
+				module.TryInvokeStartupMethod("update", new object[] { });
+			}
 
 			foreach(BaseEntity entity in EntityController.GetAllEntities()) {
 				if(entity.HasPropertyEnabled("update")) {
@@ -82,6 +101,10 @@ namespace CoreEngine {
 			}
 
 			base.Update(gameTime);
+		}
+
+		private bool IsKeyPressed(KeyboardState keyboard, Keys key) {
+			return keyboard.IsKeyDown(key) && !previousFrameKeys.Contains(key);
 		}
 
 
@@ -96,9 +119,12 @@ namespace CoreEngine {
 			foreach(CoreEngine.Modularization.Module module in ModuleController.ModuleRegistry.Values) {
 				module.TryInvokeStartupMethod("draw", new object[] { });
 			}
-
-			foreach(List<DrawOperation> operationList in DrawQueue.ProcessAndReturnDrawQueue().Values) {
-				foreach(DrawOperation operation in operationList) {
+				
+			foreach(DrawLayer layer in drawQueue.ProcessAndReturnDrawQueue().Values) {
+				foreach(BaseEntity entity in layer.BaseDrawEntities) {
+					entity.Draw();
+				}
+				foreach(DrawQueueOperation operation in layer.DrawOperations) {
 					if(operation.Delegate.IsCSharp) {
 						operation.Delegate.Delegate.Invoke();
 					} else {
@@ -106,7 +132,6 @@ namespace CoreEngine {
 					}
 				}
 			}
-
 			//UI Layer
 			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
 			spriteBatch.DrawString(CoreFont.System,

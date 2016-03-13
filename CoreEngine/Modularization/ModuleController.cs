@@ -142,6 +142,7 @@ namespace CoreEngine.Modularization {
 								CoreScript script = ModuleController.FindEntityRecordByReferencer(data.GetReferencer());
 								BaseEntity instance = script.GetInstance<BaseEntity>(new object[] { });
 								instance.Metadata = data;
+								instance.SetReferenceScript(entity);
 								script.InvokeMethod(instance, "register", new object[] { });
 								hasRegistered = true;
 							} else {

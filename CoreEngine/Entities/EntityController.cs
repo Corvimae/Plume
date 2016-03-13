@@ -6,8 +6,8 @@ using System.Text;
 
 namespace CoreEngine.Entities {
 	public class EntityController {
-		private static List<BaseEntity> EntityInstances = new List<BaseEntity>();
-		private static Dictionary<string, BaseEntity> EntityRegistry = new Dictionary<string, BaseEntity>();
+		public static List<BaseEntity> EntityInstances = new List<BaseEntity>();
+		public static Dictionary<string, BaseEntity> EntityRegistry = new Dictionary<string, BaseEntity>();
 
 		public static void RegisterEntityInstance(BaseEntity entity) {
 			EntityInstances.Add(entity);
