@@ -87,7 +87,15 @@ namespace CoreEngine.Modularization {
 				throw new InvalidReferencerException(referencer);
 			}
 		}
-	}
+
+		public static EntityData FindEntityData(string entityType, string entityName) {
+			foreach(Module module in ModuleRegistry.Values) {
+				EntityData recoveredData = module.GetEntityData(entityType, entityName);
+				if(recoveredData != null) return recoveredData;
+			}
+			return null;
+		}
+	} 
 
 	public struct EntityReferencer {
 		public string Module;
@@ -105,7 +113,7 @@ namespace CoreEngine.Modularization {
 	}
 	public class InvalidEntityTypeException : Exception {
 	}
-	public class DuplicateEntityTypeDefinitionException : Exception {
+	public class DuplicateEntityDefinitionException : Exception {
 	}
 	public class ModuleNotRegisteredException : Exception {
 		public string ModuleName;

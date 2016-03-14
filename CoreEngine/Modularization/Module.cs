@@ -94,12 +94,17 @@ namespace CoreEngine.Modularization {
 							entityTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
 							superTypeName = entityType.SuperClass != null ? entityType.SuperClass.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last() : null;
 							if(superTypeName == "BaseEntity") {
-								if(EntityRegistry.ContainsKey(entityTypeName)) {
+								if(!EntityRegistry.ContainsKey(entityTypeName + "." + entityName)) {
 									EntityData data = null;
-									if(EntityRegist.ContainsKey(entityTypeName + "." + baseParentTypeName)) {
-										data = EntityDataRegistry[entityTypeName + "." + baseParentTypeName].CreateImpartialClone();
+									if(EntityRegistry.ContainsKey(entityTypeName + "." + baseParentTypeName)) {
+										data = EntityRegistry[entityTypeName + "." + baseParentTypeName].Data.CreateImpartialClone();
 									} else {
-										data = new EntityData();
+										EntityData recoveredData = ModuleController.FindEntityData(entityTypeName, baseParentTypeName);
+										if(recoveredData != null) {
+											data = recoveredData;
+										} else {
+											data = new EntityData();
+										}
 									}
 									data.Name = entityName;
 									data.EntityType = entityTypeName;
@@ -112,8 +117,9 @@ namespace CoreEngine.Modularization {
 
 									script.InvokeMethod(instance, "register", new object[] { });
 									hasRegistered = true;
+									break;
 								} else {
-									throw new InvalidEntityTypeException();
+									throw new DuplicateEntityDefinitionException();
 								}
 							}
 							entityType = entityType.SuperClass;
@@ -134,9 +140,17 @@ namespace CoreEngine.Modularization {
 
 		public CoreScript GetEntityRecord(string entityType, string entityName) {
 			if(EntityRegistry.ContainsKey(entityType + "." + entityName)) {
-					return EntityRegistry[entityType + "." + entityName];
+					return EntityRegistry[entityType + "." + entityName].Script;
 			} else {
 				throw new EntityNotFoundException(entityType);
+			}
+		}
+
+		public EntityData GetEntityData(string entityType, string entityName) {
+			if(EntityRegistry.ContainsKey(entityType + "." + entityName)) {
+				return EntityRegistry[entityType + "." + entityName].Data;
+			} else {
+				return null;
 			}
 		}
 
@@ -144,7 +158,7 @@ namespace CoreEngine.Modularization {
 			try {
 				CoreScript script = GetEntityRecord(entityType, entityName);
 				BaseEntity instance = script.GetInstance<BaseEntity>();
-				instance.Initialize(EntityDataRegistry[entityType + "." + entityName], arguments);
+				instance.Initialize(EntityRegistry[entityType + "." + entityName].Data, arguments);
 				EntityController.RegisterEntityInstance(instance);
 				return instance;
 			} catch(MissingMethodException e) {
