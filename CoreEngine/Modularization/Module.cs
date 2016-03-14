@@ -83,50 +83,30 @@ namespace CoreEngine.Modularization {
 					string entityName = entity.ClassReference.Name;
 
 					RubyClass entityType = entity.ClassReference.SuperClass;
-					string entityTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
 
-					bool hasRegistered = false;
-
-					if(entityTypeName != "BaseEntity") {
-						string superTypeName;
-						string baseParentTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
-						while(entityTypeName != "BaseClass" && entityType != null && !hasRegistered) {
-							entityTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
-							superTypeName = entityType.SuperClass != null ? entityType.SuperClass.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last() : null;
-							if(superTypeName == "BaseEntity") {
-								if(!EntityRegistry.ContainsKey(entityTypeName + "." + entityName)) {
-									EntityData data = null;
-									if(EntityRegistry.ContainsKey(entityTypeName + "." + baseParentTypeName)) {
-										data = EntityRegistry[entityTypeName + "." + baseParentTypeName].Data.CreateImpartialClone();
-									} else {
-										EntityData recoveredData = ModuleController.FindEntityData(entityTypeName, baseParentTypeName);
-										if(recoveredData != null) {
-											data = recoveredData;
-										} else {
-											data = new EntityData();
-										}
-									}
-									data.Name = entityName;
-									data.EntityType = entityTypeName;
-									data.Module = this;
-									CoreScript script = ModuleController.FindEntityRecordByReferencer(data.GetReferencer());
-									BaseEntity instance = script.GetInstance<BaseEntity>(new object[] { });
-									instance.Metadata = data;
-									instance.SetReferenceScript(entity);
-									EntityRegistry.Add(entityType + "." + entityName, new EntityRegistryRecord(entity, data));
-
-									script.InvokeMethod(instance, "register", new object[] { });
-									hasRegistered = true;
-									break;
-								} else {
-									throw new DuplicateEntityDefinitionException();
-								}
+					string baseParentTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
+					if(!EntityRegistry.ContainsKey(entityName)) {
+						EntityData data = null;
+						if(EntityRegistry.ContainsKey(baseParentTypeName)) {
+							data = EntityRegistry[baseParentTypeName].Data.CreateImpartialClone();
+						} else {
+							EntityData recoveredData = ModuleController.FindEntityData(baseParentTypeName);
+							if(recoveredData != null) {
+								data = recoveredData.CreateImpartialClone();
+							} else {
+								data = new EntityData();
 							}
-							entityType = entityType.SuperClass;
 						}
-					}
-					if(!hasRegistered) {
-						throw new InvalidEntityTypeException();
+						data.Name = entityName;
+						data.Module = this;
+						BaseEntity instance = entity.GetInstance<BaseEntity>(new object[] { });
+						instance.Metadata = data;
+						instance.SetReferenceScript(entity);
+						EntityRegistry.Add(entityName, new EntityRegistryRecord(entity, data));
+
+						entity.InvokeMethod(instance, "register", new object[] { });
+					} else {
+						throw new DuplicateEntityDefinitionException();
 					}
 				} catch(MemberAccessException e) {
 					Debug.WriteLine("Unable to compile " + file.Item.Name + ": " + e.Message);
@@ -138,31 +118,31 @@ namespace CoreEngine.Modularization {
 			}
 		}
 
-		public CoreScript GetEntityRecord(string entityType, string entityName) {
-			if(EntityRegistry.ContainsKey(entityType + "." + entityName)) {
-					return EntityRegistry[entityType + "." + entityName].Script;
+		public CoreScript GetEntityRecord(string entityName) {
+			if(EntityRegistry.ContainsKey(entityName)) {
+					return EntityRegistry[entityName].Script;
 			} else {
-				throw new EntityNotFoundException(entityType);
+				throw new EntityNotFoundException(entityName);
 			}
 		}
 
-		public EntityData GetEntityData(string entityType, string entityName) {
-			if(EntityRegistry.ContainsKey(entityType + "." + entityName)) {
-				return EntityRegistry[entityType + "." + entityName].Data;
+		public EntityData GetEntityData(string entityName) {
+			if(EntityRegistry.ContainsKey(entityName)) {
+				return EntityRegistry[entityName].Data;
 			} else {
 				return null;
 			}
 		}
 
-		public BaseEntity CreateEntityInstance(string entityType, string entityName, params object[] arguments) {
+		public BaseEntity CreateEntityInstance(string entityName, params object[] arguments) {
 			try {
-				CoreScript script = GetEntityRecord(entityType, entityName);
+				CoreScript script = GetEntityRecord(entityName);
 				BaseEntity instance = script.GetInstance<BaseEntity>();
-				instance.Initialize(EntityRegistry[entityType + "." + entityName].Data, arguments);
+				instance.Initialize(EntityRegistry[entityName].Data, arguments);
 				EntityController.RegisterEntityInstance(instance);
 				return instance;
 			} catch(MissingMethodException e) {
-				Debug.WriteLine("Attempted to make entity of type " + entityType + "." + entityName + ", but a method was missing: " + e.Message);
+				Debug.WriteLine("Attempted to make entity  " + entityName + ", but a method was missing: " + e.Message);
 				return null;
 			}
 		}

@@ -30,6 +30,7 @@ class Main < CoreObject
 		else
 			@animation.pause
 		end
+		return bundle
 	end
 	
 	def draw

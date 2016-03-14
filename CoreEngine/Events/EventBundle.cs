@@ -6,6 +6,7 @@ using CoreEngine.Utilities;
 namespace CoreEngine.Events {
 	public class EventBundle {
 		public Hash Content;
+		public bool EndPropagation = false;
 
 		public EventBundle(Hash hash) {
 			Content = hash;

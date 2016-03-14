@@ -9,6 +9,10 @@ namespace CoreEngine.Events {
 	public static class EventController {
 		public static Dictionary<EventDefinition, SortedDictionary<int, List<EventRequest>>> EventRegistry 
 		= new Dictionary<EventDefinition, SortedDictionary<int, List<EventRequest>>>();
+
+		static EventController() {
+			RegisterEvent("click");
+		}
 	
 		public static EventDefinition RegisterEvent(string name) {
 			if(!EventRegistry.Any(x => x.Key.Name == name)) {
@@ -42,25 +46,26 @@ namespace CoreEngine.Events {
 			}
 		}
 
-		public static void Call(string name, EventBundle bundle) {
+		public static EventBundle Fire(string name, EventBundle bundle) {
 			if(EventRegistry.Any(x => x.Key.Name == name)) {	
 				KeyValuePair<EventDefinition, SortedDictionary<int, List<EventRequest>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
 				foreach(KeyValuePair<int, List<EventRequest>> level in registryItem.Value) {
 					foreach(EventRequest request in level.Value) {
 						if(request.Delegate.IsCSharp) {
-							request.Delegate.Delegate.Invoke(bundle);
+							bundle = request.Delegate.Delegate.Invoke(bundle);
 						} else {
-							request.Delegate.Delegate.Invoke(request.Instance, null, bundle);
+							bundle = request.Delegate.Delegate.Invoke(request.Instance, null, bundle);
 						}
 					}
 				}
 			} else {
 				throw new InvalidEventException(name);
 			}
+			return bundle;
 		}
 
-		public static void Call(string name, Hash hash) {
-			Call(name, new EventBundle(hash));
+		public static void Fire(string name, Hash hash) {
+			Fire(name, new EventBundle(hash));
 		}
 	}
 
