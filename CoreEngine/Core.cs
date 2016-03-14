@@ -22,7 +22,8 @@ namespace CoreEngine {
 		Map activeMap;
 		DrawQueue drawQueue = new DrawQueue();
 
-		private Keys[] previousFrameKeys = new Keys[0];
+		private KeyboardState previousKeyboardState = Keyboard.GetState();
+		private MouseState previousMouseState = Mouse.GetState();
 
 		public Core() {
 			graphics = new GraphicsDeviceManager(this);
@@ -60,31 +61,40 @@ namespace CoreEngine {
 
 			//Handle Input
 
-			KeyboardState keyboard = Keyboard.GetState();
-
-			if(keyboard.IsKeyDown(Keys.Up)) {
+			KeyboardState keyboardState = Keyboard.GetState();
+			MouseState mouseState = Mouse.GetState();
+			if(keyboardState.IsKeyDown(Keys.Up)) {
 				Camera.YGoal -= 10;
-			} else if(keyboard.IsKeyDown(Keys.Down)) {
+			} else if(keyboardState.IsKeyDown(Keys.Down)) {
 				Camera.YGoal += 10;
 			}
 
-			if(keyboard.IsKeyDown(Keys.Left)) {
+			if(keyboardState.IsKeyDown(Keys.Left)) {
 				Camera.XGoal -= 10;
-			} else if(keyboard.IsKeyDown(Keys.Right)) {
+			} else if(keyboardState.IsKeyDown(Keys.Right)) {
 				Camera.XGoal += 10;
 			}
 
-			if(keyboard.IsKeyDown(Keys.OemMinus)) {
+			if(keyboardState.IsKeyDown(Keys.OemMinus)) {
 				Camera.Scale -= 0.05f;
-			} else if(keyboard.IsKeyDown(Keys.OemPlus)) {
+			} else if(keyboardState.IsKeyDown(Keys.OemPlus)) {
 				Camera.Scale += 0.05f;
 			}
 
-			if(IsKeyPressed(keyboard, Keys.E)) {
-				EventController.Call("pause", new EventBundle(new Dictionary<object, object>()));
+			if(IsKeyPressed(keyboardState, Keys.E)) {
+				EventController.Fire("pause", new EventBundle(new Dictionary<object, object>()));
 			}
 
-			previousFrameKeys = keyboard.GetPressedKeys();
+			if(mouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton != ButtonState.Pressed ) {
+				EventBundle finalBundle = EventController.Fire("click", new EventBundle(new Dictionary<object, object> {
+					{ "x", mouseState.X },
+					{ "y", mouseState.Y }
+				}));
+				Debug.WriteLine("Click");
+			}
+				
+			previousMouseState = mouseState; 
+			previousKeyboardState = keyboardState;
 
 			//End Input Section
 
@@ -103,8 +113,8 @@ namespace CoreEngine {
 			base.Update(gameTime);
 		}
 
-		private bool IsKeyPressed(KeyboardState keyboard, Keys key) {
-			return keyboard.IsKeyDown(key) && !previousFrameKeys.Contains(key);
+		private bool IsKeyPressed(KeyboardState keyboardState, Keys key) {
+			return keyboardState.IsKeyDown(key) && !previousKeyboardState.GetPressedKeys().Contains(key);
 		}
 
 

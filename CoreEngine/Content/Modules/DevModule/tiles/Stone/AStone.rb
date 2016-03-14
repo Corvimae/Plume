@@ -7,6 +7,15 @@ class AStone < Stone
 	def	register
 		p "Registered AStone";
 		self.unregister_draw_on_layer 2
+		set_entity_properties({ 
+			draw: true, 
+			update: false, 
+			click: true 
+		})
+	end
+
+	def on_click(event_bundle)
+		p "Clicked!"
 	end
 
 	def draw

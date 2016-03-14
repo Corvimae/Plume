@@ -10,7 +10,6 @@ namespace CoreEngine.Entities{
 	public class EntityData : CoreObjectData  {
 
 		public string Name;
-		public string EntityType;
 
 		public Dictionary<int, DynamicDelegate> DrawActionRegistry = new Dictionary<int, DynamicDelegate>();
 
@@ -23,7 +22,7 @@ namespace CoreEngine.Entities{
 		public int DrawLayer = 0;
 
 		public string GetReferencer() {
-			return Module.Definition.ModuleInfo.FullName + "." + EntityType + "." + Name;
+			return Module.Definition.ModuleInfo.Name + "::" + Name;
 		}
 
 		public EntityData CreateImpartialClone() {

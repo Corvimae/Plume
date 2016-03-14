@@ -64,7 +64,7 @@ namespace CoreEngine.Modularization {
 		public static CoreScript FindEntityRecordByReferencer(string referenceString) {
 			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referenceString);
 			if(ModuleRegistry.ContainsKey(referencer.Module)) {
-				return ModuleRegistry[referencer.Module].GetEntityRecord(referencer.Type, referencer.Name);
+				return ModuleRegistry[referencer.Module].GetEntityRecord(referencer.Name);
 			} else {
 				throw new ModuleNotRegisteredException(referencer.Module);
 			}
@@ -73,24 +73,24 @@ namespace CoreEngine.Modularization {
 		public static BaseEntity CreateEntityByReferencer(string referenceString, params object[] arguments) {
 			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referenceString);
 			if(ModuleRegistry.ContainsKey(referencer.Module)) {
-				return ModuleRegistry[referencer.Module].CreateEntityInstance(referencer.Type, referencer.Name, arguments);
+				return ModuleRegistry[referencer.Module].CreateEntityInstance(referencer.Name, arguments);
 			} else {
 				throw new ModuleNotRegisteredException(referencer.Module);
 			}
 		}
 
 		public static EntityReferencer ConvertStringToEntityReferencer(string referencer) {
-			string[] referencerComponents = referencer.Split('.');
-			if(referencerComponents.Length == 3) {
-				return new EntityReferencer(referencerComponents[0], referencerComponents[1], referencerComponents[2]);
+			string[] referencerComponents = referencer.Split(new string[] { "::" }, StringSplitOptions.None);
+			if(referencerComponents.Length == 2) {
+				return new EntityReferencer(referencerComponents[0], referencerComponents[1]);
 			} else {
 				throw new InvalidReferencerException(referencer);
 			}
 		}
 
-		public static EntityData FindEntityData(string entityType, string entityName) {
+		public static EntityData FindEntityData(string entityName) {
 			foreach(Module module in ModuleRegistry.Values) {
-				EntityData recoveredData = module.GetEntityData(entityType, entityName);
+				EntityData recoveredData = module.GetEntityData(entityName);
 				if(recoveredData != null) return recoveredData;
 			}
 			return null;
@@ -99,16 +99,14 @@ namespace CoreEngine.Modularization {
 
 	public struct EntityReferencer {
 		public string Module;
-		public string Type;
 		public string Name;
-		public EntityReferencer(string module, string type, string name) {
+		public EntityReferencer(string module, string name) {
 			this.Module = module;
-			this.Type = type;
 			this.Name = name;
 		}
 
 		public string GetReferencer() {
-			return Module + "." + Type + "." + Name;
+			return Module + "::" + Name;
 		}
 	}
 	public class InvalidEntityTypeException : Exception {

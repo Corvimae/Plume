@@ -10,7 +10,7 @@ class Main < CoreObject
 
 	def after_load
 		p "Core Module by AcceptableIce: Initialized"
-		EventController.call("test", { test: "Test!" })
+		EventController.fire("test", { test: "Test!" })
 	end
 
 	def update
@@ -21,12 +21,14 @@ class Main < CoreObject
 		
 	end
 
-	def test(eventData)
+	def test(event_bundle)
 		p "Test event!"
-		p eventData.Content
+		p event_bundle.Content
+		return event_bundle
 	end
 
-	def test_first(eventData)
+	def test_first(event_bundle)
 		p "First!"
+		return event_bundle
 	end
 end

@@ -123,6 +123,8 @@ namespace CoreEngine.Entities {
 
 		public virtual void Update() { }
 
+		public virtual void OnClick() { }
+
 	}
 
 	class InvalidEntityPropertyException : Exception {
