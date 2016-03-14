@@ -19,8 +19,10 @@ namespace CoreEngine.Modularization {
 
 		public ModuleDefinition Definition;
 
-		CoreScript Startup;
 		public CoreObject StartupInstance;
+
+		Dictionary<string, CoreScript> Scripts = new Dictionary<string, CoreScript>();
+		Dictionary<string, EntityRegistryRecord> EntityRegistry = new Dictionary<string, EntityRegistryRecord>();
 
 		public Module(string directory) {
 			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + directory);
@@ -29,7 +31,7 @@ namespace CoreEngine.Modularization {
 
 		public void BuildModule() {
 			LoadModuleClasses();
-			Startup.TryInvokeMethod(StartupInstance, "after_load", new object[] { });
+			TryInvokeStartupMethod("after_load", new object[] { });
 		}
 
 		private void LoadModuleClasses() {
@@ -44,12 +46,14 @@ namespace CoreEngine.Modularization {
 
 			foreach(FileInfo script in rubyFiles) {
 				if(script.Name == Definition.StartupFile) {
-					Startup = new CoreScript(script, this);
-					Startup.Compile();
-					StartupInstance = Startup.GetInstance<CoreObject>(new object[] { });
-					StartupInstance.SetReferenceScript(Startup);
+					CoreScript startupScript = new CoreScript(script, this);
+					startupScript.Compile();
+					Scripts.Add(Path.GetFileNameWithoutExtension(script.Name), startupScript);
+					StartupInstance = startupScript.GetInstance<CoreObject>(new object[] { });
+					StartupInstance.SetReferenceScript(startupScript);
 					StartupInstance.Metadata = new CoreObjectData();
-					Startup.TryInvokeMethod(StartupInstance, "before_load", new object[] { });
+					StartupInstance.Metadata.Module = this;
+					startupScript.TryInvokeMethod(StartupInstance, "before_load", new object[] { });
 				} else {
 					//Get the extended class for this script
 					DependencyNode<FileInfo> classNode = dependencyGraph.AddNode(script, FileInfoEqualityChecker);
@@ -71,21 +75,88 @@ namespace CoreEngine.Modularization {
 
 			List<DependencyNode<FileInfo>> processOrder = dependencyGraph.GetProcessingOrder();
 			foreach(DependencyNode<FileInfo> file in processOrder) {
-				ModuleController.RegisterEntity(this, file.Item);
+				try {
+					CoreScript entity = new CoreScript(file.Item, this);
+					entity.Compile();
+					Scripts.Add(Path.GetFileNameWithoutExtension(file.Item.Name), entity);
+
+					string entityName = entity.ClassReference.Name;
+
+					RubyClass entityType = entity.ClassReference.SuperClass;
+					string entityTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
+
+					bool hasRegistered = false;
+
+					if(entityTypeName != "BaseEntity") {
+						string superTypeName;
+						string baseParentTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
+						while(entityTypeName != "BaseClass" && entityType != null && !hasRegistered) {
+							entityTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
+							superTypeName = entityType.SuperClass != null ? entityType.SuperClass.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last() : null;
+							if(superTypeName == "BaseEntity") {
+								if(EntityRegistry.ContainsKey(entityTypeName)) {
+									EntityData data = null;
+									if(EntityRegist.ContainsKey(entityTypeName + "." + baseParentTypeName)) {
+										data = EntityDataRegistry[entityTypeName + "." + baseParentTypeName].CreateImpartialClone();
+									} else {
+										data = new EntityData();
+									}
+									data.Name = entityName;
+									data.EntityType = entityTypeName;
+									data.Module = this;
+									CoreScript script = ModuleController.FindEntityRecordByReferencer(data.GetReferencer());
+									BaseEntity instance = script.GetInstance<BaseEntity>(new object[] { });
+									instance.Metadata = data;
+									instance.SetReferenceScript(entity);
+									EntityRegistry.Add(entityType + "." + entityName, new EntityRegistryRecord(entity, data));
+
+									script.InvokeMethod(instance, "register", new object[] { });
+									hasRegistered = true;
+								} else {
+									throw new InvalidEntityTypeException();
+								}
+							}
+							entityType = entityType.SuperClass;
+						}
+					}
+					if(!hasRegistered) {
+						throw new InvalidEntityTypeException();
+					}
+				} catch(MemberAccessException e) {
+					Debug.WriteLine("Unable to compile " + file.Item.Name + ": " + e.Message);
+					Debug.WriteLine(e.ToString());
+				} catch(Exception e) {
+					Debug.WriteLine("An unexpected error occured while attempting to register the CoreScript entity " + file.Item.Name);
+					Debug.WriteLine(e.ToString());
+				}
 			}
 		}
 
-
-		public dynamic InvokeStartupMethod(string method, params object[] arguments) {
-			if(Startup != null) {
-				return Startup.InvokeMethod(StartupInstance, method, arguments);
+		public CoreScript GetEntityRecord(string entityType, string entityName) {
+			if(EntityRegistry.ContainsKey(entityType + "." + entityName)) {
+					return EntityRegistry[entityType + "." + entityName];
+			} else {
+				throw new EntityNotFoundException(entityType);
 			}
-			return null;
 		}
+
+		public BaseEntity CreateEntityInstance(string entityType, string entityName, params object[] arguments) {
+			try {
+				CoreScript script = GetEntityRecord(entityType, entityName);
+				BaseEntity instance = script.GetInstance<BaseEntity>();
+				instance.Initialize(EntityDataRegistry[entityType + "." + entityName], arguments);
+				EntityController.RegisterEntityInstance(instance);
+				return instance;
+			} catch(MissingMethodException e) {
+				Debug.WriteLine("Attempted to make entity of type " + entityType + "." + entityName + ", but a method was missing: " + e.Message);
+				return null;
+			}
+		}
+
 
 		public dynamic TryInvokeStartupMethod(string method, params object[] arguments) {
-			if(Startup != null) {
-				return Startup.TryInvokeMethod(StartupInstance, method, arguments);
+			if(Definition.StartupFile != null) {
+				return Scripts[Path.GetFileNameWithoutExtension(Definition.StartupFile)].TryInvokeMethod(StartupInstance, method, arguments);
 			}
 			return null;
 		}
@@ -111,6 +182,16 @@ namespace CoreEngine.Modularization {
 
 		private void Log(object message) {
 			Debug.WriteLine("Module " + Definition.ModuleInfo.Name + ": " + message.ToString());
+		}
+	}
+
+	struct EntityRegistryRecord {
+		public CoreScript Script;
+		public EntityData Data;
+
+		public EntityRegistryRecord(CoreScript script, EntityData data) {
+			this.Script = script;
+			this.Data = data;
 		}
 	}
 
