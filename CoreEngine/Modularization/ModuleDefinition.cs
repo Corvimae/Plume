@@ -15,10 +15,16 @@ namespace CoreEngine.Modularization {
 
 		[JsonProperty(PropertyName = "requires")]
 		public Dictionary<string, string> Dependencies;
+
+		public string GetFullName() {
+			if(ModuleInfo.FullName != null) return ModuleInfo.FullName;
+			return ModuleInfo.Name;
+		}
 	}
 	public struct ModuleMetadata {
 		public string Name;
 		public string Version;
 		public string Author;
+		public string FullName;
 	}
 }
