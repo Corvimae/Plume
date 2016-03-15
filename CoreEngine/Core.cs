@@ -34,6 +34,8 @@ namespace CoreEngine {
 		protected override void Initialize() {
 			base.Initialize();
 
+			this.IsMouseVisible = true;
+
 			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
 			string[] modules = new string[] { "DevModule", "Core" };
 			foreach(string module in modules) ModuleController.RegisterModule(module);
@@ -86,11 +88,19 @@ namespace CoreEngine {
 			}
 
 			if(mouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton != ButtonState.Pressed ) {
-				EventBundle finalBundle = EventController.Fire("click", new EventBundle(new Dictionary<object, object> {
+				EventBundle bundle = new EventBundle(new Dictionary<object, object> {
 					{ "x", mouseState.X },
 					{ "y", mouseState.Y }
-				}));
-				Debug.WriteLine("Click");
+				});
+				EventController.Fire("click", bundle);
+				if(bundle.ContinuePropagating) {
+					foreach(BaseEntity e in EntityController.GetAllEntities().Where(e => e.HasPropertyEnabled("click"))) {
+						if(e.GetDrawBoundry().Contains((int) bundle.Content["x"], (int) bundle.Content["y"])) {
+							e.OnClick(bundle);
+							if(!bundle.ContinuePropagating) break;
+						}
+					}
+				}
 			}
 				
 			previousMouseState = mouseState; 

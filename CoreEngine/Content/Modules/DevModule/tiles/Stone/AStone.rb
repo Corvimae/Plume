@@ -12,15 +12,17 @@ class AStone < Stone
 			update: false, 
 			click: true 
 		})
+		@clicked = false
 	end
 
 	def on_click(event_bundle)
-		p "Clicked!"
+		@clicked = true
 	end
 
 	def draw
 		super
-		Canvas.draw_string(CoreFont.System, "A", position.x + 14, position.y + 14, CoreColor.White)
+		click_color = @clicked ? CoreColor.Black : CoreColor.White
+		Canvas.draw_string(CoreFont.System, "A", position.x + 14, position.y + 14, click_color)
 	end
 
 end

@@ -46,22 +46,22 @@ namespace CoreEngine.Events {
 			}
 		}
 
-		public static EventBundle Fire(string name, EventBundle bundle) {
+		public static void Fire(string name, EventBundle bundle) {
 			if(EventRegistry.Any(x => x.Key.Name == name)) {	
 				KeyValuePair<EventDefinition, SortedDictionary<int, List<EventRequest>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
 				foreach(KeyValuePair<int, List<EventRequest>> level in registryItem.Value) {
 					foreach(EventRequest request in level.Value) {
 						if(request.Delegate.IsCSharp) {
-							bundle = request.Delegate.Delegate.Invoke(bundle);
+							request.Delegate.Delegate.Invoke(bundle);
 						} else {
-							bundle = request.Delegate.Delegate.Invoke(request.Instance, null, bundle);
+							request.Delegate.Delegate.Invoke(request.Instance, null, bundle);
 						}
+						if(!bundle.ContinuePropagating) return;
 					}
 				}
 			} else {
 				throw new InvalidEventException(name);
 			}
-			return bundle;
 		}
 
 		public static void Fire(string name, Hash hash) {

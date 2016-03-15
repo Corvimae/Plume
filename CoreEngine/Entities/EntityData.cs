@@ -15,7 +15,8 @@ namespace CoreEngine.Entities{
 
 		public Dictionary<string, bool> EntityProperties = new Dictionary<string, bool> {
 			{ "draw", false },
-			{ "update", false }
+			{ "update", false },
+			{ "click", false }
 		};
 
 
