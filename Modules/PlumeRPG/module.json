@@ -4,5 +4,5 @@
 		"author": "AcceptableIce",
 		"version": "0.1"
 	},
-	"startup": "Main"
+	"startup": "PlumeRPG.Main"
 }

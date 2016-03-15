@@ -4,7 +4,7 @@
 		"author": "AcceptableIce",
 		"version": "0.1"
 	},
-	"startup": "Main",
+	"startup": "DevModule.Main",
 	"requires": {
 		"AcceptableIce/PlumeRPG": "0.1"
 	}
