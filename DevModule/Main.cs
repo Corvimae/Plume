@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework;
 using System.Diagnostics;
 
 namespace DevModule {
-	[PlumeStartup]
 	class Main : PlumeModule {
 		Animation animation;
 		int Frame = 0;
