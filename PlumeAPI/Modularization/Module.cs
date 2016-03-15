@@ -38,7 +38,7 @@ namespace PlumeAPI.Modularization {
 
 				TypeServices.TryInvokeStaticTypeMethod("SetModuleData", type, new object[] { this, typeName });
 
-				if(type.GetCustomAttributes().Any(x => x.GetType().Name == "PlumeStartupAttribute")) {
+				if(type.FullName == Definition.StartupClass) {
 					BaseLogic = GetInstance(type.Name);
 				}
 

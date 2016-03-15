@@ -11,7 +11,7 @@ namespace PlumeAPI.Modularization {
 		public ModuleMetadata ModuleInfo;
 
 		[JsonProperty(PropertyName = "startup")]
-		public string StartupFile;
+		public string StartupClass;
 
 		[JsonProperty(PropertyName = "requires")]
 		public Dictionary<string, string> Dependencies;
