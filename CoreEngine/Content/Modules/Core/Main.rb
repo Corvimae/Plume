@@ -4,8 +4,11 @@ include CoreEngine::Events
 class Main < CoreObject
 	def before_load
 		EventController.register_event("test")
-		call_on_event("test", 0, :test);
-		call_on_event("test", 2, :test_first);
+		call_on_event("test", 0, :test)
+		call_on_event("test", 2, :test_first)
+		call_on_event("click", 0, :on_click)
+
+		@clicks = 0
 	end
 
 	def after_load
@@ -19,6 +22,11 @@ class Main < CoreObject
 	
 	def draw
 		
+	end
+
+	def on_click(bundle)
+		p "Click fire"
+		@clicks += 1
 	end
 
 	def test(event_bundle)

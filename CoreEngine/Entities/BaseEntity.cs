@@ -1,4 +1,5 @@
 ﻿using CoreEngine.Entities.Interfaces;
+using CoreEngine.Events;
 using CoreEngine.Modularization;
 using CoreEngine.Scripting;
 using CoreEngine.Utilities;
@@ -123,8 +124,7 @@ namespace CoreEngine.Entities {
 
 		public virtual void Update() { }
 
-		public virtual void OnClick() { }
-
+		public virtual void OnClick(EventBundle bundle) { }
 	}
 
 	class InvalidEntityPropertyException : Exception {

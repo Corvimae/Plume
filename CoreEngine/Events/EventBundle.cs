@@ -6,7 +6,7 @@ using CoreEngine.Utilities;
 namespace CoreEngine.Events {
 	public class EventBundle {
 		public Hash Content;
-		public bool EndPropagation = false;
+		public bool ContinuePropagating = true;
 
 		public EventBundle(Hash hash) {
 			Content = hash;
@@ -18,6 +18,10 @@ namespace CoreEngine.Events {
 
 		public Dictionary<string, dynamic> ToDictionary() {
 			return RubyConverter.ConvertHashToDictionary(Content);
+		}
+
+		public void EndPropagation() {
+			ContinuePropagating = false;
 		}
 	}
 }
