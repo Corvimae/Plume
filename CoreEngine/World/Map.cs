@@ -23,9 +23,9 @@ namespace CoreEngine.World {
 			for (int x = 0; x < grid.GetLength(0); x++) {
 				for (int y = 0; y < grid.GetLength(1); y++) {
 					if(x % 2 == 0) {
-						grid[x, y] = ModuleController.CreateEntityByReferencer("DevModule::Stone", x, y);
+						grid[x, y] = ModuleController.CreateEntityByReferencer("DevModule.Tiles.Stone", x, y);
 					} else {
-						grid[x, y] = ModuleController.CreateEntityByReferencer("DevModule::AStone", x, y);
+						grid[x, y] = ModuleController.CreateEntityByReferencer("DevModule.Tiles.AStone", x, y); //Astone
 					}
 				}
 			}

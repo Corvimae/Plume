@@ -7,10 +7,11 @@ using CoreEngine.Utilities;
 using System.Diagnostics;
 using System;
 using System.Linq;
-using CoreEngine.Scripting;
+using CoreEngine.Graphics;
 using CoreEngine.Entities;
 using System.Collections.Generic;
 using CoreEngine.Events;
+using System.Reflection;
 
 namespace CoreEngine {
 	/// <summary>
@@ -33,11 +34,12 @@ namespace CoreEngine {
 
 		protected override void Initialize() {
 			base.Initialize();
+			AppDomain.CurrentDomain.AssemblyResolve += ResolveDuplicateAssembly;
 
 			this.IsMouseVisible = true;
 
 			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
-			string[] modules = new string[] { "DevModule", "Core" };
+			string[] modules = new string[] { "DevModule", "PlumeCore" };
 			foreach(string module in modules) ModuleController.RegisterModule(module);
 			ModuleController.ResolveDependencies();
 			ModuleController.ImportModules();
@@ -50,7 +52,7 @@ namespace CoreEngine {
 		protected override void LoadContent() {
 			spriteBatch = new SpriteBatch(GraphicsDevice);
 			GameServices.AddService<SpriteBatch>(spriteBatch);
-			CoreFont.System = Content.Load<SpriteFont>("Fonts/System");
+			FontRepository.System = Content.Load<SpriteFont>("Fonts/System");
 		}
 
 		protected override void UnloadContent() {
@@ -84,20 +86,20 @@ namespace CoreEngine {
 			}
 
 			if(IsKeyPressed(keyboardState, Keys.E)) {
-				EventController.Fire("pause", new EventBundle(new Dictionary<object, object>()));
+				EventController.Fire("pause", new EventData(new Dictionary<string, object>()));
 			}
 
 			if(mouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton != ButtonState.Pressed ) {
-				EventBundle bundle = new EventBundle(new Dictionary<object, object> {
-					{ "x", mouseState.X },
-					{ "y", mouseState.Y }
+				Vector2 localMousePoint = Camera.ConvertViewportToCamera(new Vector2(mouseState.X, mouseState.Y));
+				EventData eventData = new EventData(new Dictionary<string, object> {
+					{ "position", localMousePoint },
 				});
-				EventController.Fire("click", bundle);
-				if(bundle.ContinuePropagating) {
+				EventController.Fire("click", eventData);
+				if(eventData.ContinuePropagating) {
 					foreach(BaseEntity e in EntityController.GetAllEntities().Where(e => e.HasPropertyEnabled("click"))) {
-						if(e.GetDrawBoundry().Contains((int) bundle.Content["x"], (int) bundle.Content["y"])) {
-							e.OnClick(bundle);
-							if(!bundle.ContinuePropagating) break;
+						if(e.GetDrawBoundry().Contains((Vector2) eventData["position"])) {
+							e.OnClick(eventData);
+							if(!eventData.ContinuePropagating) break;
 						}
 					}
 				}
@@ -110,8 +112,8 @@ namespace CoreEngine {
 
 			Camera.Update();
 
-			foreach(CoreEngine.Modularization.Module module in ModuleController.ModuleRegistry.Values) {
-				module.TryInvokeStartupMethod("update", new object[] { });
+			foreach(Modularization.Module module in ModuleController.ModuleRegistry.Values) {
+				module.TryInvokeStartupMethod("Update", new object[] { });
 			}
 
 			foreach(BaseEntity entity in EntityController.GetAllEntities()) {
@@ -127,7 +129,6 @@ namespace CoreEngine {
 			return keyboardState.IsKeyDown(key) && !previousKeyboardState.GetPressedKeys().Contains(key);
 		}
 
-
 		protected override void Draw(GameTime gameTime) {
 			GraphicsDevice.Clear(Color.CornflowerBlue);
 			Canvas.LoadCameraBoundsForFrame();
@@ -136,29 +137,32 @@ namespace CoreEngine {
 			Matrix transformationMatrix = Camera.GetTransformationMatrix();
 			Matrix inverseMatrix = Matrix.Invert(transformationMatrix);
 			spriteBatch.Begin(transformMatrix: transformationMatrix);
-			foreach(CoreEngine.Modularization.Module module in ModuleController.ModuleRegistry.Values) {
-				module.TryInvokeStartupMethod("draw", new object[] { });
+			foreach(Modularization.Module module in ModuleController.ModuleRegistry.Values) {
+				module.TryInvokeStartupMethod("Draw", new object[] { });
 			}
 				
-			foreach(DrawLayer layer in drawQueue.ProcessAndReturnDrawQueue().Values) {
-				foreach(BaseEntity entity in layer.BaseDrawEntities) {
-					entity.Draw();
-				}
-				foreach(DrawQueueOperation operation in layer.DrawOperations) {
-					if(operation.Delegate.IsCSharp) {
-						operation.Delegate.Delegate.Invoke();
-					} else {
-						operation.Delegate.Delegate.Invoke(operation.Entity, null);
-					}
+			foreach(List<Action> layer in drawQueue.ProcessAndReturnDrawQueue().Values) {
+				foreach(Action operation in layer) {
+					operation.Invoke();
 				}
 			}
+
 			//UI Layer
 			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
-			spriteBatch.DrawString(CoreFont.System,
+			spriteBatch.DrawString(FontRepository.System,
 				"FPS: " + Math.Round(frameRate) + " | Draw: " + Math.Round((DateTime.Now - start).TotalMilliseconds) + "ms",
-				Vector2.Transform(new Vector2(5, 5), inverseMatrix), Color.White);
+				Camera.ConvertViewportToCamera(new Vector2(5, 5)), Color.White);
 			spriteBatch.End();
 			base.Draw(gameTime);
+		}
+
+		static Assembly ResolveDuplicateAssembly(object source, ResolveEventArgs e) {
+			if(!AppDomain.CurrentDomain.GetAssemblies().Any(x => x.GetName().FullName == e.Name)) {
+				return Assembly.Load(e.Name);
+			} else {
+				Debug.WriteLine("Duplicate assembly " + e.Name + " skipped.");
+				return AppDomain.CurrentDomain.GetAssemblies().First(x => x.GetName().FullName == e.Name);
+			}
 		}
 	}
 }

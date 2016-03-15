@@ -1,77 +1,107 @@
 ﻿using System;
 using CoreEngine.Modularization;
-using IronRuby.Builtins;
 using CoreEngine.Events;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
+using System.Linq;
 using CoreEngine.Utilities;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using System.Reflection;
+using System.Linq.Expressions;
 
 namespace CoreEngine.Entities {
 	public class CoreObject {
-		protected CoreScript ReferenceScript;
-		public CoreObjectData Metadata;
+		protected static Dictionary<string, Texture2D> TextureRegistry = new Dictionary<string, Texture2D>();
+		protected static Dictionary<string, Animation> AnimationRegistry = new Dictionary<string, Animation>();
 
-		internal void SetReferenceScript(CoreScript reference) {
-			ReferenceScript = reference;
-		}
+		protected static Modularization.Module Module;
 
-		protected Texture2D RegisterTexture(string name, string fileName) {
+		public static string Name;
+
+		public static void Register() { }
+
+		public static Texture2D RegisterTexture(string name, string fileName) {
 			try {
-				if(!Metadata.TextureRegistry.ContainsKey(name)) {
-					FileStream fileStream = new FileStream(ReferenceScript.SourceFile.Directory.FullName + "/" + fileName, FileMode.Open);
+				if(!TextureRegistry.ContainsKey(name)) {
+					FileStream fileStream = new FileStream(Module.Directory.FullName + "/Assets/" + fileName, FileMode.Open);
 					Texture2D texture = Texture2D.FromStream(GameServices.GetService<GraphicsDevice>(), fileStream);
-					Metadata.TextureRegistry.Add(name, texture);
+					TextureRegistry.Add(name, texture);
 					fileStream.Close();
 					return texture;
 				} else {
-					return Metadata.TextureRegistry[name];
+					return TextureRegistry[name];
 				}
 			} catch(Exception e) when(e is FileNotFoundException || e is DirectoryNotFoundException) {
-				Debug.WriteLine(ReferenceScript.SourceFile.Name + " was unable to load the texture " + ReferenceScript.SourceFile.Directory.FullName + 
+				Debug.WriteLine(GetReferencer() + " was unable to load the texture " + Module.Directory.FullName + 
 												"/" + fileName +	" (Are you sure you're using relative paths?)");
 			}
 			return null;
 		}
 
-		protected Animation RegisterAnimation(string name, string textureName, int width, int height, int frameDuration, int totalFrames) {
-			if(!Metadata.AnimationRegistry.ContainsKey(name)) {
+		public static Animation RegisterAnimation(string name, string textureName, int width, int height, int frameDuration, int totalFrames) {
+			if(!AnimationRegistry.ContainsKey(name)) {
 				Texture2D texture = GetTexture(textureName);
 				if(texture != null) {
 					Animation animation = new Animation(texture, new Vector2(width, height), frameDuration, totalFrames);
-					Metadata.AnimationRegistry.Add(name, animation);
+					AnimationRegistry.Add(name, animation);
 					return animation;
 				} else {
 					Debug.WriteLine("Unable to register animation " + name + ".");
 					return null;
 				}
 			} else {
-				return Metadata.AnimationRegistry[name];
+				return AnimationRegistry[name];
 			}
 		}
 
-		protected Texture2D GetTexture(string key) {
+		public static Texture2D GetTexture(string key) {
 			try {
-				return Metadata.TextureRegistry[key];
+				return TextureRegistry[key];
 			} catch(KeyNotFoundException) {
-				Debug.WriteLine("Item \"" + key + "\" not found in texture registry for " + ReferenceScript.SourceFile.Name);
+				Debug.WriteLine("Item \"" + key + "\" not found in texture registry for " + Name);
 				return null;
 			}
 		}
 
-		protected Animation GetAnimationInstance(string key) {
+		public static Animation GetAnimationInstance(string key) {
 			try {
-				return Metadata.AnimationRegistry[key].Clone();
+				return AnimationRegistry[key].Clone();
 			} catch(KeyNotFoundException) {
-				Debug.WriteLine("Item \"" + key + "\" not found in animation registry for " + ReferenceScript.SourceFile.Name);
+				Debug.WriteLine("Item \"" + key + "\" not found in animation registry for " + Name);
 				return null;
 			}
 		}
 
-		public void CallOnEvent(string eventName, int priority, RubySymbol method) {
-			EventController.CallOnEvent(eventName, method, ReferenceScript, priority, this);
+		public static void SetModuleData(Modularization.Module module, string name) {
+			Module = module;
+			Name = name;
+			Debug.WriteLine("Name set to " + Name);
+		}
+
+		public Delegate GetDelegate(string method) {
+			MethodInfo methodInfo = GetType().GetMethod(method);
+			return methodInfo.CreateDelegate(
+				Expression.GetDelegateType(
+					(from parameter in methodInfo.GetParameters() select parameter.ParameterType).
+				Concat(new[] { methodInfo.ReturnType }).
+				ToArray()
+				),
+				this
+			);
+		}
+
+		public static string GetReferencer() {
+			return Module.Definition.ModuleInfo.Name + "." + Name;
+		}
+
+		public void CallOnEvent(string eventName, int priority, string method) {
+			try {
+				EventController.CallOnEvent(eventName, priority, (Action<EventData>)GetDelegate(method));
+			} catch (InvalidCastException e) {
+				Debug.WriteLine(method + " does not contain the correct parameters to be used as an event callback. void func(EventData)");
+			}
 		}
 	}
 }

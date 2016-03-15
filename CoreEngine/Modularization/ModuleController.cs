@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CoreEngine.Utilities;
-using CoreEngine.Scripting;
 using System.Diagnostics;
-using System.IO;
 using CoreEngine.Entities;
-using System.Reflection;
-using IronRuby.Builtins;
 
 namespace CoreEngine.Modularization {
 	static class ModuleController {
 		#if WINDOWS
-				public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../Content/Modules";
+				public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../../Modules";
 		#else
 				public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../../../Content/Modules";
 		#endif
@@ -61,39 +56,24 @@ namespace CoreEngine.Modularization {
 			}
 		}
 
-		public static CoreScript FindEntityRecordByReferencer(string referenceString) {
-			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referenceString);
-			if(ModuleRegistry.ContainsKey(referencer.Module)) {
-				return ModuleRegistry[referencer.Module].GetEntityRecord(referencer.Name);
-			} else {
-				throw new ModuleNotRegisteredException(referencer.Module);
-			}
-		}
-
 		public static BaseEntity CreateEntityByReferencer(string referenceString, params object[] arguments) {
 			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referenceString);
 			if(ModuleRegistry.ContainsKey(referencer.Module)) {
-				return ModuleRegistry[referencer.Module].CreateEntityInstance(referencer.Name, arguments);
+				BaseEntity entity = ModuleRegistry[referencer.Module].GetInstance(referencer.Name, arguments);
+				EntityController.EntityInstances.Add(entity);
+				return entity;
 			} else {
 				throw new ModuleNotRegisteredException(referencer.Module);
 			}
 		}
 
 		public static EntityReferencer ConvertStringToEntityReferencer(string referencer) {
-			string[] referencerComponents = referencer.Split(new string[] { "::" }, StringSplitOptions.None);
-			if(referencerComponents.Length == 2) {
-				return new EntityReferencer(referencerComponents[0], referencerComponents[1]);
+			string[] referencerComponents = referencer.Split(new string[] { "." }, StringSplitOptions.None);
+			if(referencerComponents.Length >= 2) {
+				return new EntityReferencer(referencerComponents[0], String.Join(".", referencerComponents.Skip(1)));
 			} else {
 				throw new InvalidReferencerException(referencer);
 			}
-		}
-
-		public static EntityData FindEntityData(string entityName) {
-			foreach(Module module in ModuleRegistry.Values) {
-				EntityData recoveredData = module.GetEntityData(entityName);
-				if(recoveredData != null) return recoveredData;
-			}
-			return null;
 		}
 	} 
 

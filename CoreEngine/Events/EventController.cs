@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using IronRuby.Builtins;
 using CoreEngine.Modularization;
 using System.Diagnostics;
 
 namespace CoreEngine.Events {
 	public static class EventController {
-		public static Dictionary<EventDefinition, SortedDictionary<int, List<EventRequest>>> EventRegistry 
-		= new Dictionary<EventDefinition, SortedDictionary<int, List<EventRequest>>>();
+		public static Dictionary<EventDefinition, SortedDictionary<int, List<Action<EventData>>>> EventRegistry 
+		= new Dictionary<EventDefinition, SortedDictionary<int, List<Action<EventData>>>>();
 
 		static EventController() {
 			RegisterEvent("click");
@@ -17,7 +16,7 @@ namespace CoreEngine.Events {
 		public static EventDefinition RegisterEvent(string name) {
 			if(!EventRegistry.Any(x => x.Key.Name == name)) {
 				EventDefinition definition = new EventDefinition(name);
-				EventRegistry.Add(definition, new SortedDictionary<int , List<EventRequest>>(Comparer<int>.Create((x, y) => y.CompareTo(x))));
+				EventRegistry.Add(definition, new SortedDictionary<int , List<Action<EventData>>>(Comparer<int>.Create((x, y) => y.CompareTo(x))));
 				Debug.WriteLine("Event " + name + " registered.");
 				return definition;
 			} else {
@@ -26,13 +25,13 @@ namespace CoreEngine.Events {
 			}
 		}
 
-		public static void CallOnEvent(string name, RubySymbol method, CoreScript script, int priority, object instance) {
+		public static void CallOnEvent(string name, int priority, Action<EventData> method) {
 			if(EventRegistry.Keys.Any(x => x.Name == name)) {
-				KeyValuePair<EventDefinition, SortedDictionary<int, List<EventRequest>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
+				KeyValuePair<EventDefinition, SortedDictionary<int, List<Action<EventData>>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
 				if(!registryItem.Value.Keys.Contains(priority)) {
-					registryItem.Value[priority] = new List<EventRequest>();
+					registryItem.Value[priority] = new List<Action<EventData>>();
 				}
-				registryItem.Value[priority].Add(new EventRequest(method, script, instance));
+				registryItem.Value[priority].Add(method);
 			} else {
 				throw new InvalidEventException(name);
 			}
@@ -46,17 +45,13 @@ namespace CoreEngine.Events {
 			}
 		}
 
-		public static void Fire(string name, EventBundle bundle) {
+		public static void Fire(string name, EventData eventData) {
 			if(EventRegistry.Any(x => x.Key.Name == name)) {	
-				KeyValuePair<EventDefinition, SortedDictionary<int, List<EventRequest>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
-				foreach(KeyValuePair<int, List<EventRequest>> level in registryItem.Value) {
-					foreach(EventRequest request in level.Value) {
-						if(request.Delegate.IsCSharp) {
-							request.Delegate.Delegate.Invoke(bundle);
-						} else {
-							request.Delegate.Delegate.Invoke(request.Instance, null, bundle);
-						}
-						if(!bundle.ContinuePropagating) return;
+				KeyValuePair<EventDefinition, SortedDictionary<int, List<Action<EventData>>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
+				foreach(KeyValuePair<int, List<Action<EventData>>> level in registryItem.Value) {
+					foreach(Action<EventData> request in level.Value) {
+						request.Invoke(eventData);
+						if(!eventData.ContinuePropagating) return;
 					}
 				}
 			} else {
@@ -64,8 +59,12 @@ namespace CoreEngine.Events {
 			}
 		}
 
-		public static void Fire(string name, Hash hash) {
-			Fire(name, new EventBundle(hash));
+		public static void Fire(string name, Dictionary<string, object> hash) {
+			Fire(name, new EventData(hash));
+		}
+
+		public static void Fire(string name) {
+			Fire(name, new EventData());
 		}
 	}
 

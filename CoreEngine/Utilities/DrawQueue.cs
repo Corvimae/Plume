@@ -9,63 +9,34 @@ using CoreEngine.World;
 namespace CoreEngine.Utilities {
 	class DrawQueue {
 		//By placing base .draw operations in a new queue, we can speed up the draw process considerably.
-		private SortedDictionary<int, DrawLayer> Operations = new SortedDictionary<int, DrawLayer>();
+		private SortedDictionary<int, List<Action>> Operations = new SortedDictionary<int, List<Action>>();
 
 		public DrawQueue() { }
 
 		public DrawQueue(IComparer<int> comparer) {
-			this.Operations = new SortedDictionary<int, DrawLayer>(comparer);
-
+			this.Operations = new SortedDictionary<int, List<Action>>(comparer);
 		}
 
-		public void AddOperation(int layer, DynamicDelegate del, BaseEntity instance) {
+		public void AddOperation(int layer, Action action) {
 			if(!Operations.ContainsKey(layer)) {
-				Operations.Add(layer, new DrawLayer());
+				Operations.Add(layer, new List<Action>());
 			}
-			Operations[layer].DrawOperations.Add(new DrawQueueOperation(instance, del));
+			Operations[layer].Add(action);
 		}
 
 
-		public void AddBaseDrawOperation(int layer, BaseEntity instance) {
-			if(!Operations.ContainsKey(layer)) {
-				Operations.Add(layer, new DrawLayer());
-			}
-			Operations[layer].BaseDrawEntities.Add(instance);
-		}
-
-		public SortedDictionary<int, DrawLayer> ProcessAndReturnDrawQueue() {
+		public SortedDictionary<int, List<Action>> ProcessAndReturnDrawQueue() {
 			Operations.Clear();
 			foreach(BaseEntity entity in EntityController.GetAllEntities()) {
 				if(entity.HasPropertyEnabled("draw") && Camera.IsOnCamera(entity.GetDrawBoundry())) {
-					Dictionary<int, DynamicDelegate> drawActions = entity.GetDrawActionRegistry();
-					AddBaseDrawOperation(entity.GetDrawLayer(), entity);
-					foreach(KeyValuePair<int, DynamicDelegate> entry in drawActions) {
-						AddOperation(entry.Key, entry.Value, entity);
+					AddOperation(entity.DrawLayer, (Action) entity.GetDelegate("Draw"));
+					foreach(KeyValuePair<int, Action> entry in entity.GetDrawActionRegistry()) {
+						AddOperation(entry.Key, entry.Value);
 					}
 				}
 			}
 			return Operations;
 		}
 
-	}
-
-	struct DrawQueueOperation {
-		public BaseEntity Entity;
-		public DynamicDelegate Delegate;
-		
-		public DrawQueueOperation(BaseEntity entity, DynamicDelegate del) {
-			this.Entity = entity;
-			this.Delegate = del;
-		}
-	}
-
-	class DrawLayer {
-		public List<BaseEntity> BaseDrawEntities;
-		public List<DrawQueueOperation> DrawOperations;
-
-		public DrawLayer() {
-			this.BaseDrawEntities = new List<BaseEntity>();
-			this.DrawOperations = new List<DrawQueueOperation>();
-		}
 	}
 }
