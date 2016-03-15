@@ -1,0 +1,11 @@
+﻿{
+	"module": {
+		"name": "DevModule",
+		"author": "AcceptableIce",
+		"version": "0.1"
+	},
+	"startup": "Main",
+	"requires": {
+		"AcceptableIce/PlumeRPG": "0.1"
+	}
+}
