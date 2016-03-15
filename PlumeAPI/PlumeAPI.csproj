@@ -4,20 +4,19 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2A061B3C-2AFC-4385-BC19-0AEFEC20DA6B}</ProjectGuid>
+    <ProjectGuid>{D29F2EFD-AC31-49AB-AE52-26871C8DE999}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DevModule</RootNamespace>
-    <AssemblyName>DevModule</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RootNamespace>PlumeAPI</RootNamespace>
+    <AssemblyName>PlumeAPI</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Modules\DevModule\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,7 +31,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework, Version=3.4.0.456, Culture=neutral, processorArchitecture=MSIL">
-      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -44,35 +48,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main.cs" />
-    <Compile Include="Tiles\Astone.cs" />
-    <Compile Include="Tiles\Stone.cs" />
+    <Compile Include="Attributes\PlumeStartupAttribute.cs" />
+    <Compile Include="Attributes\RunOnLoadAttribute.cs" />
+    <Compile Include="Entities.Interfaces\IDrawableEntity.cs" />
+    <Compile Include="Entities.Interfaces\IUpdatableEntity.cs" />
+    <Compile Include="Entities\Animation.cs" />
+    <Compile Include="Entities\BaseEntity.cs" />
+    <Compile Include="Entities\CoreObject.cs" />
+    <Compile Include="Entities\EntityController.cs" />
+    <Compile Include="Events\EventController.cs" />
+    <Compile Include="Events\EventData.cs" />
+    <Compile Include="Events\EventDefinition.cs" />
+    <Compile Include="Graphics\Canvas.cs" />
+    <Compile Include="Graphics\FontRepository.cs" />
+    <Compile Include="Modularization\Module.cs" />
+    <Compile Include="Modularization\ModuleController.cs" />
+    <Compile Include="Modularization\ModuleDefinition.cs" />
+    <Compile Include="Modularization\PlumeModule.cs" />
+    <Compile Include="Utilities\DependencyGraph.cs" />
+    <Compile Include="Utilities\GameServices.cs" />
+    <Compile Include="Utilities\TypeServices.cs" />
+    <Compile Include="World\Camera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PlumeAPI\PlumeAPI.csproj">
-      <Project>{d29f2efd-ac31-49ab-ae52-26871c8de999}</Project>
-      <Name>PlumeAPI</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\PlumeRPG\PlumeRPG.csproj">
-      <Project>{9ec7d273-7e30-4dbb-9e66-ba9be0134905}</Project>
-      <Name>PlumeRPG</Name>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Assets\excavator.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Stone.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="module.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
