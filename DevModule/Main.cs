@@ -1,8 +1,8 @@
-﻿using CoreEngine.Attributes;
-using CoreEngine.Entities;
-using CoreEngine.Events;
-using CoreEngine.Graphics;
-using CoreEngine.Modularization;
+﻿using PlumeAPI.Attributes;
+using PlumeAPI.Entities;
+using PlumeAPI.Events;
+using PlumeAPI.Graphics;
+using PlumeAPI.Modularization;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
 

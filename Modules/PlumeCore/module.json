@@ -1,8 +1,0 @@
-﻿{
-	"module": {
-		"name": "PlumeCore",
-		"author": "AcceptableIce",
-		"version": "0.1"
-	},
-	"startup": "Main"
-}

@@ -1,6 +1,6 @@
-﻿using CoreEngine.Graphics;
+﻿using PlumeAPI.Graphics;
 using Microsoft.Xna.Framework;
-using PlumeCore.Entities;
+using PlumeRPG.Entities;
 
 namespace DevModule.Tiles {
 	public class Stone : MapTile {
