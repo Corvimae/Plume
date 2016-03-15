@@ -5,11 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using IronRuby.Runtime;
 using CoreEngine.World;
 using CoreEngine.Entities;
 
-namespace CoreEngine.Scripting {
+namespace CoreEngine.Graphics {
 	public class Canvas {
 		static SpriteBatch spriteBatch = GameServices.GetService<SpriteBatch>();
 		static GraphicsDevice graphicsDevice = GameServices.GetService<GraphicsDevice>();
@@ -33,33 +32,32 @@ namespace CoreEngine.Scripting {
 		public static void DrawTexture(Texture2D sprite, float x, float y) {
 			spriteBatch.Draw(sprite, new Vector2(x, y), Color.White);
 		}
-		public static void DrawTexture(Texture2D sprite, float x, float y, CoreColor color) {
-			spriteBatch.Draw(sprite, new Vector2(x, y), color.ToXNAColor());
+		public static void DrawTexture(Texture2D sprite, float x, float y, Color color) {
+			spriteBatch.Draw(sprite, new Vector2(x, y), color);
 		}
-		public static void DrawTexture(Texture2D sprite, Vector2 position, Rectangle clip, CoreColor color, Vector2 origin, SpriteEffects effect) {
-			spriteBatch.Draw(sprite, position, clip, color.ToXNAColor(), 0.0f, origin, 1.0f, effect, 0.0f);
+		public static void DrawTexture(Texture2D sprite, Vector2 position, Rectangle clip, Color color, Vector2 origin, SpriteEffects effect) {
+			spriteBatch.Draw(sprite, position, clip, color, 0.0f, origin, 1.0f, effect, 0.0f);
 		}
 
-		public static void DrawAnimation(Animation animation, float x, float y, CoreColor color) {
+		public static void DrawAnimation(Animation animation, float x, float y, Color color) {
 			animation.Draw(new Vector2(x, y), color);
 		}
-		public static void DrawString(SpriteFont font, string text, float x, float y, CoreColor color) {
+		public static void DrawString(SpriteFont font, string text, float x, float y, Color color) {
 			Vector2 dimensions = font.MeasureString(text);
 			if(CameraBounds.Intersects(new Rectangle((int)x, (int)y, (int)dimensions.X, (int)dimensions.Y))) {
-				spriteBatch.DrawString(font, text, new Vector2(x, y), color.ToXNAColor());
+				spriteBatch.DrawString(font, text, new Vector2(x, y), color);
 			}
 		}
 
-		public static void DrawRect(int x, int y, int width, int height, CoreColor coreColor) {
-			Color color = coreColor.ToXNAColor();
+		public static void DrawRect(int x, int y, int width, int height, Color color) {
 			spriteBatch.Draw(Pixel, new Rectangle(x, y, width, 1), color);
 			spriteBatch.Draw(Pixel, new Rectangle(x, y, 1, height), color);
 			spriteBatch.Draw(Pixel, new Rectangle(x + width, y, 1, height), color);
 			spriteBatch.Draw(Pixel, new Rectangle(x, y + height, width, 1), color);
 		}
 
-		public static void DrawFilledRect(int x, int y, int width, int height, CoreColor coreColor) {
-			spriteBatch.Draw(Pixel, new Rectangle(x, y, width, height), coreColor.ToXNAColor());
+		public static void DrawFilledRect(int x, int y, int width, int height, Color color) {
+			spriteBatch.Draw(Pixel, new Rectangle(x, y, width, height), color);
 		}
 
 		public static Vector2 GetStringWidth(SpriteFont font, string text) {

@@ -74,6 +74,13 @@ namespace CoreEngine.World {
 			return Matrix.CreateTranslation(-X, -Y, 0) * Matrix.CreateScale(Scale, Scale, 1.0f);
 		}
 
+		public static Vector2 ConvertViewportToCamera(Vector2 input) {
+			return Vector2.Transform(input, Matrix.Invert(GetTransformationMatrix()));
+		}
+		public static Vector2 ConvertCameraToViewport(Vector2 input) {
+			return Vector2.Transform(input, GetTransformationMatrix());
+		}
+
 		public static void Update() {
 			if(UseEasing) {
 				//Trend towards our position
@@ -101,7 +108,6 @@ namespace CoreEngine.World {
 				Y = YGoal;
 				Scale = ScaleGoal;
 			}
-
 		}
 	}
 }

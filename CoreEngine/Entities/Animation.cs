@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using CoreEngine.Scripting;
+using CoreEngine.Graphics;
 
 namespace CoreEngine.Entities {
 	public class Animation {
@@ -26,7 +26,7 @@ namespace CoreEngine.Entities {
 			this.Origin = new Vector2(CellDimensions.X / 2.0f, CellDimensions.Y); 
 		}
 
-		public void Draw(Vector2 position, CoreColor color) {
+		public void Draw(Vector2 position, Color color) {
 			Rectangle clip = new Rectangle((int) (Math.Floor((double) FramesPassed / CellDuration) * CellDimensions.X), 0,
 																		 (int) CellDimensions.X, (int)CellDimensions.Y);
 			

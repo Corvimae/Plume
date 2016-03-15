@@ -1,11 +1,8 @@
 ﻿using CoreEngine.Entities.Interfaces;
 using CoreEngine.Events;
 using CoreEngine.Modularization;
-using CoreEngine.Scripting;
+using CoreEngine.Graphics;
 using CoreEngine.Utilities;
-using IronRuby.Builtins;
-using IronRuby.Runtime;
-using IronRuby.Runtime.Calls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -19,20 +16,23 @@ using System.Text;
 
 namespace CoreEngine.Entities {
 	public class BaseEntity : CoreObject, IDrawableEntity, IUpdatableEntity {
-		
+
 		protected Vector2 Position;
 		protected Vector2 DrawDimensions;
 
 		protected string Identifier;
 
+		public Dictionary<int, Action> DrawActionRegistry = new Dictionary<int, Action>();
+
+		public static Dictionary<string, bool> EntityProperties = new Dictionary<string, bool> {
+			{ "draw", false },
+			{ "update", false },
+			{ "click", false }
+		};
+
+		public int DrawLayer = 0;
+
 		public BaseEntity() {}
-
-		public void Initialize(EntityData metadata, params object[] arguments) {
-			Metadata = metadata;
-			Create(arguments);
-		}
-
-		protected virtual void Register() { }
 		protected virtual void Create(params object[] arguments) { }
 
 		public virtual void Destroy() {
@@ -41,34 +41,30 @@ namespace CoreEngine.Entities {
 			}
 		}
 
-		public EntityData GetMetadata() {
-			return (EntityData) Metadata;
-		}
-
-		public string GetReferencer() {
-			return GetMetadata().GetReferencer();
-		}
-
 		public bool HasPropertyEnabled(string setting) {
-			return GetMetadata().EntityProperties[setting];
+			return EntityProperties[setting];
 		}
 
-		protected void SetEntityProperties(Hash properties) {
-			SetEntityProperties(RubyConverter.ConvertHashToDictionary(properties));
-		}
-
-		protected void SetEntityProperties(Dictionary<string, dynamic> properties) {
-			foreach(KeyValuePair<string, dynamic> property in properties) {
-				if(GetMetadata().EntityProperties.ContainsKey(property.Key)) {
-					GetMetadata().EntityProperties[property.Key] = (bool)property.Value;
+		protected static void SetEntityProperties(Dictionary<string, bool> properties) {
+			foreach(KeyValuePair<string, bool> property in properties) {
+				if(EntityProperties.ContainsKey(property.Key)) {
+					EntityProperties[property.Key] = (bool)property.Value;
 				} else {
 					throw new InvalidEntityPropertyException(property.Key, GetReferencer());
 				}
 			}
 		}
 
+		protected static void SetEntityProperty(string property, bool value) {
+			if(EntityProperties.ContainsKey(property)) {
+				EntityProperties[property] = (bool) value;
+			} else {
+				throw new InvalidEntityPropertyException(property, GetReferencer());
+			}
+		}
+
 		public int GetDrawLayer() {
-			return GetMetadata().DrawLayer;
+			return DrawLayer;
 		}
 		public Vector2 GetPosition() {
 			return Position;
@@ -91,28 +87,18 @@ namespace CoreEngine.Entities {
 			EntityController.RegisterEntity(identifier, this);
 		}
 
-
-		public Dictionary<int, DynamicDelegate> GetDrawActionRegistry() {
-			return GetMetadata().DrawActionRegistry;
+		public Dictionary<int, Action> GetDrawActionRegistry() {
+			return DrawActionRegistry;
 		}
-		protected void DrawOnLayer(int level, RubySymbol method) {
-			if(!GetMetadata().DrawActionRegistry.ContainsKey(level)) {
-				GetMetadata().DrawActionRegistry.Add(
-					level, 
-					DynamicDelegate.CreateDelegateForRubyMethod(method, this, ReferenceScript)
-				);
-			}
-		}
-
 		protected void DrawOnLayer(int level, string method) {
-			if(!GetMetadata().DrawActionRegistry.ContainsKey(level)) {
-				GetMetadata().DrawActionRegistry.Add(level, DynamicDelegate.CreateDelegateForCSharpMethod(method, this));
+			if(!DrawActionRegistry.ContainsKey(level)) {
+				DrawActionRegistry.Add(level, (Action) GetDelegate(method));
 			}
 		}
 
 		protected void UnregisterDrawOnLayer(int level) {
-			if(GetMetadata().DrawActionRegistry.ContainsKey(level)) {
-				GetMetadata().DrawActionRegistry.Remove(level);
+			if(DrawActionRegistry.ContainsKey(level)) {
+				DrawActionRegistry.Remove(level);
 			}
 		}
 
@@ -124,7 +110,7 @@ namespace CoreEngine.Entities {
 
 		public virtual void Update() { }
 
-		public virtual void OnClick(EventBundle bundle) { }
+		public virtual void OnClick(EventData data) { }
 	}
 
 	class InvalidEntityPropertyException : Exception {

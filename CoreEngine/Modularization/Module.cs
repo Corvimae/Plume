@@ -8,151 +8,67 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CoreEngine.Utilities;
-using IronRuby.Builtins;
 using System.Text.RegularExpressions;
 using CoreEngine.Entities;
+using CoreEngine.Attributes;
 
 namespace CoreEngine.Modularization {
 	public class Module {
 
-		DirectoryInfo Directory;
+		internal DirectoryInfo Directory;
 
 		public ModuleDefinition Definition;
 
-		public CoreObject StartupInstance;
+		public Assembly DLL;
 
-		Dictionary<string, CoreScript> Scripts = new Dictionary<string, CoreScript>();
-		Dictionary<string, EntityRegistryRecord> EntityRegistry = new Dictionary<string, EntityRegistryRecord>();
+		PlumeModule BaseLogic;
 
-		public Module(string directory) {
-			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + directory);
+		Dictionary<string, Type> TypeRegistry = new Dictionary<string, Type>();
+
+		public Module(string name) {
+			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + name);
 			LoadDefinition();
 		}
 
 		public void BuildModule() {
-			LoadModuleClasses();
-			TryInvokeStartupMethod("after_load", new object[] { });
-		}
+			DLL = Assembly.LoadFile(Directory.FullName + "/" + Definition.ModuleInfo.Name + ".dll");
+			foreach(Type type in DLL.GetTypes()) {
+				string typeName = String.Join(".", type.FullName.Split('.').Skip(1));
+				TypeRegistry.Add(typeName, type);
 
-		private void LoadModuleClasses() {
-			DependencyGraph<FileInfo> dependencyGraph = new DependencyGraph<FileInfo>();
-			IEnumerable<FileInfo> rubyFiles = System.IO.Directory.GetFiles(this.Directory.FullName, "*.rb", SearchOption.AllDirectories).Select(t => new FileInfo(t));
+				TypeServices.TryInvokeStaticTypeMethod("SetModuleData", type, new object[] { this, typeName });
 
-			//Find lines of syntax class [a] | OR | class [a] < [b]
-			Regex classExtractor = new Regex(@"class ([A-Za-z]+)(?: < ([A-Za-z]+))?", RegexOptions.Multiline);
-			Func<FileInfo, FileInfo, bool> FileInfoEqualityChecker = delegate (FileInfo existing, FileInfo file) {
-				return existing.FullName == file.FullName;
-			};
+				if(type.GetCustomAttributes().Any(x => x.GetType().Name == "PlumeStartupAttribute")) {
+					BaseLogic = GetInstance(type.Name);
+				}
 
-			foreach(FileInfo script in rubyFiles) {
-				if(script.Name == Definition.StartupFile) {
-					CoreScript startupScript = new CoreScript(script, this);
-					startupScript.Compile();
-					Scripts.Add(Path.GetFileNameWithoutExtension(script.Name), startupScript);
-					StartupInstance = startupScript.GetInstance<CoreObject>(new object[] { });
-					StartupInstance.SetReferenceScript(startupScript);
-					StartupInstance.Metadata = new CoreObjectData();
-					StartupInstance.Metadata.Module = this;
-					startupScript.TryInvokeMethod(StartupInstance, "before_load", new object[] { });
-				} else {
-					//Get the extended class for this script
-					DependencyNode<FileInfo> classNode = dependencyGraph.AddNode(script, FileInfoEqualityChecker);
-					string rawScript = File.ReadAllText(script.FullName);
-					Match classMatch = classExtractor.Match(rawScript);
-					if(classMatch != null && classMatch.Groups.Count == 3) {
-						string baseClass = classMatch.Groups[2].Value;
-						FileInfo dependency = rubyFiles.FirstOrDefault(t => {
-							return Path.GetFileNameWithoutExtension(t.Name) == baseClass;
-						});
-						//If the dependency is not found, it must belong to an outside source.
-						if(dependency != null) {
-							DependencyNode<FileInfo> baseNode = dependencyGraph.AddNode(dependency, FileInfoEqualityChecker);
-							dependencyGraph.AddDependency(baseNode, classNode);
-						}
+				foreach(MethodInfo method in type.GetMethods(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.Public).
+					Where(x => x.GetCustomAttributes().Any(attr => attr.GetType().Name == "RunOnLoadAttribute"))) {
+					RunOnLoadAttribute attribute = (RunOnLoadAttribute) method.GetCustomAttribute(typeof(RunOnLoadAttribute));
+					if(!attribute.Exceptions.Any(x => x == type.Name)) {
+						TypeServices.TryInvokeStaticTypeMethod(method.Name, type, new object[] { });
 					}
 				}
 			}
+			TryInvokeStartupMethod("AfterLoad");
+		}																 
 
-			List<DependencyNode<FileInfo>> processOrder = dependencyGraph.GetProcessingOrder();
-			foreach(DependencyNode<FileInfo> file in processOrder) {
-				try {
-					CoreScript entity = new CoreScript(file.Item, this);
-					entity.Compile();
-					Scripts.Add(Path.GetFileNameWithoutExtension(file.Item.Name), entity);
-
-					string entityName = entity.ClassReference.Name;
-
-					RubyClass entityType = entity.ClassReference.SuperClass;
-
-					string baseParentTypeName = entityType.Name.Split(new string[] { "::" }, StringSplitOptions.None).Last();
-					if(!EntityRegistry.ContainsKey(entityName)) {
-						EntityData data = null;
-						if(EntityRegistry.ContainsKey(baseParentTypeName)) {
-							data = EntityRegistry[baseParentTypeName].Data.CreateImpartialClone();
-						} else {
-							EntityData recoveredData = ModuleController.FindEntityData(baseParentTypeName);
-							if(recoveredData != null) {
-								data = recoveredData.CreateImpartialClone();
-							} else {
-								data = new EntityData();
-							}
-						}
-						data.Name = entityName;
-						data.Module = this;
-						BaseEntity instance = entity.GetInstance<BaseEntity>(new object[] { });
-						instance.Metadata = data;
-						instance.SetReferenceScript(entity);
-						EntityRegistry.Add(entityName, new EntityRegistryRecord(entity, data));
-
-						entity.InvokeMethod(instance, "register", new object[] { });
-					} else {
-						throw new DuplicateEntityDefinitionException();
-					}
-				} catch(MemberAccessException e) {
-					Debug.WriteLine("Unable to compile " + file.Item.Name + ": " + e.Message);
-					Debug.WriteLine(e.ToString());
-				} catch(Exception e) {
-					Debug.WriteLine("An unexpected error occured while attempting to register the CoreScript entity " + file.Item.Name);
-					Debug.WriteLine(e.ToString());
+		public dynamic TryInvokeStartupMethod(string methodName, params object[] arguments) {
+			if(BaseLogic != null) {
+				MethodInfo methodInfo = BaseLogic.GetType().GetMethod(methodName);
+				if(methodInfo != null) {
+					return methodInfo.Invoke(BaseLogic, arguments);
 				}
-			}
-		}
-
-		public CoreScript GetEntityRecord(string entityName) {
-			if(EntityRegistry.ContainsKey(entityName)) {
-					return EntityRegistry[entityName].Script;
-			} else {
-				throw new EntityNotFoundException(entityName);
-			}
-		}
-
-		public EntityData GetEntityData(string entityName) {
-			if(EntityRegistry.ContainsKey(entityName)) {
-				return EntityRegistry[entityName].Data;
-			} else {
-				return null;
-			}
-		}
-
-		public BaseEntity CreateEntityInstance(string entityName, params object[] arguments) {
-			try {
-				CoreScript script = GetEntityRecord(entityName);
-				BaseEntity instance = script.GetInstance<BaseEntity>();
-				instance.Initialize(EntityRegistry[entityName].Data, arguments);
-				EntityController.RegisterEntityInstance(instance);
-				return instance;
-			} catch(MissingMethodException e) {
-				Debug.WriteLine("Attempted to make entity  " + entityName + ", but a method was missing: " + e.Message);
-				return null;
-			}
-		}
-
-
-		public dynamic TryInvokeStartupMethod(string method, params object[] arguments) {
-			if(Definition.StartupFile != null) {
-				return Scripts[Path.GetFileNameWithoutExtension(Definition.StartupFile)].TryInvokeMethod(StartupInstance, method, arguments);
 			}
 			return null;
+		}
+
+		public dynamic GetInstance(string typeName, params object[] arguments) {
+			if(TypeRegistry.ContainsKey(typeName)) {
+				return Activator.CreateInstance(TypeRegistry[typeName], arguments);
+			} else {
+				throw new EntityNotRegisteredException(typeName);
+			}
 		}
 
 		private bool LoadDefinition() {
@@ -179,14 +95,5 @@ namespace CoreEngine.Modularization {
 		}
 	}
 
-	struct EntityRegistryRecord {
-		public CoreScript Script;
-		public EntityData Data;
-
-		public EntityRegistryRecord(CoreScript script, EntityData data) {
-			this.Script = script;
-			this.Data = data;
-		}
-	}
 
 }

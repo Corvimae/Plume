@@ -42,50 +42,34 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Attributes\PlumeStartupAttribute.cs" />
+    <Compile Include="Attributes\RunOnLoadAttribute.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Entities.Interfaces\IUpdatableEntity.cs" />
     <Compile Include="Entities.Interfaces\IDrawableEntity.cs" />
     <Compile Include="Entities\Animation.cs" />
     <Compile Include="Entities\BaseEntity.cs" />
     <Compile Include="Entities\CoreObject.cs" />
-    <Compile Include="Entities\CoreObjectData.cs" />
     <Compile Include="Entities\EntityController.cs" />
-    <Compile Include="Entities\EntityData.cs" />
-    <Compile Include="Events\EventBundle.cs" />
+    <Compile Include="Events\EventData.cs" />
     <Compile Include="Events\EventController.cs" />
     <Compile Include="Events\EventDefinition.cs" />
-    <Compile Include="Events\EventRequest.cs" />
-    <Compile Include="Scripting\Canvas.cs" />
-    <Compile Include="Scripting\CoreColor.cs" />
-    <Compile Include="Modularization\CoreScript.cs" />
     <Compile Include="Modularization\Module.cs" />
+    <Compile Include="Modularization\PlumeModule.cs" />
+    <Compile Include="Graphics\Canvas.cs" />
     <Compile Include="Modularization\ModuleController.cs" />
     <Compile Include="Modularization\ModuleDefinition.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scripting\CoreFont.cs" />
+    <Compile Include="Graphics\FontRepository.cs" />
     <Compile Include="Utilities\DependencyGraph.cs" />
     <Compile Include="Utilities\DrawQueue.cs" />
-    <Compile Include="Utilities\DynamicDelegate.cs" />
     <Compile Include="Utilities\GameServices.cs" />
-    <Compile Include="Utilities\RubyConverter.cs" />
     <Compile Include="Utilities\TypeServices.cs" />
     <Compile Include="World\Camera.cs" />
     <Compile Include="World\Map.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="IronRuby, Version=1.1.3.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
-      <HintPath>..\packages\IronRuby.1.1.3\lib\IronRuby.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="IronRuby.Libraries, Version=1.1.3.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
-      <HintPath>..\packages\IronRuby.1.1.3\lib\IronRuby.Libraries.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="IronRuby.Libraries.Yaml, Version=1.1.3.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
-      <HintPath>..\packages\IronRuby.1.1.3\lib\IronRuby.Libraries.Yaml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Dynamic, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <HintPath>..\packages\IronRuby.1.1.3\lib\Microsoft.Dynamic.dll</HintPath>
@@ -110,7 +94,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\Modules\DevModule\tiles\Stone\Stone.png" />
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -119,14 +102,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Content\Fonts\System.spritefont" />
-    <None Include="Content\Modules\Core\Entities\MapTile.rb" />
-    <None Include="Content\Modules\Core\Main.rb" />
-    <None Include="Content\Modules\Core\module.json" />
-    <None Include="CoreScript.md" />
-    <None Include="Content\Modules\DevModule\module.json" />
-    <None Include="Content\Modules\DevModule\Main.rb" />
-    <None Include="Content\Modules\DevModule\tiles\Stone\AStone.rb" />
-    <None Include="Content\Modules\DevModule\tiles\Stone\Stone.rb" />
+    <None Include="CoreScript_old.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

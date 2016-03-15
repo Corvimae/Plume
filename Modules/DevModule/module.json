@@ -4,8 +4,8 @@
 		"author": "AcceptableIce",
 		"version": "0.1"
 	},
-	"startup": "Main.rb",
+	"startup": "Main",
 	"requires": {
-		"AcceptableIce/Core": "0.1"
+		"AcceptableIce/PlumeCore": "0.1"
 	}
 }
