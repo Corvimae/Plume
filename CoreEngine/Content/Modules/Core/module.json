@@ -1,8 +1,0 @@
-﻿{
-	"module": {
-		"name": "Core",
-		"author": "AcceptableIce",
-		"version": "0.1"
-	},
-	"startup": "Main.rb"
-}
