@@ -1,5 +1,6 @@
 ﻿using PlumeAPI.Attributes;
 using PlumeAPI.Entities;
+using PlumeAPI.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,8 @@ namespace PlumeAPI.Modularization {
 		public virtual void AfterLoad() { }
 		public virtual void Draw() { }
 		public virtual void Update() { }
+		public virtual void UserConnected(Client user) { }
+		public virtual void UserDisconnected(Client user) { }
 
 	}
 }

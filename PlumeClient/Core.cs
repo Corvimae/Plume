@@ -12,18 +12,19 @@ using PlumeAPI.Entities;
 using System.Collections.Generic;
 using PlumeAPI.Events;
 using System.Reflection;
-using PlumeEngine.World;
-using PlumeEngine.Utilities;
+using PlumeClient.World;
+using PlumeClient.Utilities;
+using PlumeClient.Networking;
 
-namespace PlumeEngine {
+namespace PlumeClient {
 	/// <summary>
 	/// This is the main type for your game.
 	/// </summary>
 	public class Core : Game {
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
-		Map activeMap;
-		DrawQueue drawQueue = new DrawQueue();
+		EntityScope activeScope;
+		DrawQueue drawQueue;
 
 		private KeyboardState previousKeyboardState = Keyboard.GetState();
 		private MouseState previousMouseState = Mouse.GetState();
@@ -46,9 +47,12 @@ namespace PlumeEngine {
 			ModuleController.ResolveDependencies();
 			ModuleController.ImportModules();
 
-			activeMap = new Map(50, 50);
+			activeScope = new Map("MyMap", 50, 50);
+			drawQueue = new DrawQueue(activeScope);
 			Camera.Initialize();
-			Camera.UseEasing = true;				
+			Camera.UseEasing = true;
+
+			MessageDispatch.Connect("localhost", 25656);
 		}
 
 		protected override void LoadContent() {
@@ -64,6 +68,8 @@ namespace PlumeEngine {
 			if(GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
 				Exit();
 			}
+
+			MessageDispatch.ProcessIncomingMessages();
 
 			//Handle Input
 
@@ -98,7 +104,7 @@ namespace PlumeEngine {
 				});
 				EventController.Fire("click", eventData);
 				if(eventData.ContinuePropagating) {
-					foreach(BaseEntity e in EntityController.GetAllEntities().Where(e => e.HasPropertyEnabled("click"))) {
+					foreach(BaseEntity e in activeScope.GetEntities().Where(e => e.HasPropertyEnabled("click"))) {
 						if(e.GetDrawBoundry().Contains((Vector2) eventData["position"])) {
 							e.OnClick(eventData);
 							if(!eventData.ContinuePropagating) break;
@@ -114,11 +120,9 @@ namespace PlumeEngine {
 
 			Camera.Update();
 
-			foreach(PlumeAPI.Modularization.Module module in ModuleController.ModuleRegistry.Values) {
-				module.TryInvokeStartupMethod("Update", new object[] { });
-			}
+			ModuleController.InvokeStartupMethod("Update");
 
-			foreach(BaseEntity entity in EntityController.GetAllEntities()) {
+			foreach(BaseEntity entity in activeScope.GetEntities()) {
 				if(entity.HasPropertyEnabled("update")) {
 					entity.Update();
 				}

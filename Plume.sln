@@ -3,8 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlumeEngine", "PlumeEngine\PlumeEngine.csproj", "{ED6EEBDD-B30A-49C7-BAF5-2544E6274053}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlumeClient", "PlumeClient\PlumeClient.csproj", "{ED6EEBDD-B30A-49C7-BAF5-2544E6274053}"
 	ProjectSection(ProjectDependencies) = postProject
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499} = {B29332CF-FD3F-40A6-9035-D3D1F0CC4499}
 		{D29F2EFD-AC31-49AB-AE52-26871C8DE999} = {D29F2EFD-AC31-49AB-AE52-26871C8DE999}
 	EndProjectSection
 EndProject
@@ -20,6 +21,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevModule", "DevModule\DevM
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlumeAPI", "PlumeAPI\PlumeAPI.csproj", "{D29F2EFD-AC31-49AB-AE52-26871C8DE999}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlumeServer", "PlumeServer\PlumeServer.csproj", "{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D29F2EFD-AC31-49AB-AE52-26871C8DE999} = {D29F2EFD-AC31-49AB-AE52-26871C8DE999}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +66,14 @@ Global
 		{D29F2EFD-AC31-49AB-AE52-26871C8DE999}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D29F2EFD-AC31-49AB-AE52-26871C8DE999}.Release|x86.ActiveCfg = Release|Any CPU
 		{D29F2EFD-AC31-49AB-AE52-26871C8DE999}.Release|x86.Build.0 = Release|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Debug|x86.Build.0 = Debug|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Release|x86.ActiveCfg = Release|Any CPU
+		{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

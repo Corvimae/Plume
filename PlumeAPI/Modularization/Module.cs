@@ -67,7 +67,7 @@ namespace PlumeAPI.Modularization {
 			if(TypeRegistry.ContainsKey(typeName)) {
 				return Activator.CreateInstance(TypeRegistry[typeName], arguments);
 			} else {
-				throw new EntityNotRegisteredException(typeName);
+				throw new EntityTypeNotFoundException(typeName);
 			}
 		}
 

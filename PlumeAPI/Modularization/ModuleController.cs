@@ -60,7 +60,6 @@ namespace PlumeAPI.Modularization {
 			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referenceString);
 			if(ModuleRegistry.ContainsKey(referencer.Module)) {
 				BaseEntity entity = ModuleRegistry[referencer.Module].GetInstance(referencer.Name, arguments);
-				EntityController.EntityInstances.Add(entity);
 				return entity;
 			} else {
 				throw new ModuleNotRegisteredException(referencer.Module);
@@ -73,6 +72,11 @@ namespace PlumeAPI.Modularization {
 				return new EntityReferencer(referencerComponents[0], String.Join(".", referencerComponents.Skip(1)));
 			} else {
 				throw new InvalidReferencerException(referencer);
+			}
+		}
+		public static void InvokeStartupMethod(string method, params object[] arguments) {
+			foreach(Module module in ModuleController.ModuleRegistry.Values) {
+				module.TryInvokeStartupMethod(method, arguments);
 			}
 		}
 	} 
