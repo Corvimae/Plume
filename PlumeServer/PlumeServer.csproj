@@ -4,15 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D29F2EFD-AC31-49AB-AE52-26871C8DE999}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{B29332CF-FD3F-40A6-9035-D3D1F0CC4499}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PlumeAPI</RootNamespace>
-    <AssemblyName>PlumeAPI</AssemblyName>
+    <RootNamespace>PlumeServer</RootNamespace>
+    <AssemblyName>PlumeServer</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -37,11 +40,6 @@
     <Reference Include="MonoGame.Framework, Version=3.4.0.456, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,33 +51,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\RunOnLoadAttribute.cs" />
-    <Compile Include="Entities.Interfaces\IDrawableEntity.cs" />
-    <Compile Include="Entities.Interfaces\IUpdatableEntity.cs" />
-    <Compile Include="Entities\Animation.cs" />
-    <Compile Include="Entities\BaseEntity.cs" />
-    <Compile Include="Entities\CoreObject.cs" />
-    <Compile Include="Events\EventController.cs" />
-    <Compile Include="Events\EventData.cs" />
-    <Compile Include="Events\EventDefinition.cs" />
-    <Compile Include="Graphics\Canvas.cs" />
-    <Compile Include="Graphics\FontRepository.cs" />
-    <Compile Include="Modularization\Module.cs" />
-    <Compile Include="Modularization\ModuleController.cs" />
-    <Compile Include="Modularization\ModuleDefinition.cs" />
-    <Compile Include="Modularization\PlumeModule.cs" />
-    <Compile Include="Networking\Client.cs" />
-    <Compile Include="Networking\MessageHandler.cs" />
-    <Compile Include="Networking\MessageController.cs" />
-    <Compile Include="Utilities\DependencyGraph.cs" />
-    <Compile Include="Utilities\GameServices.cs" />
-    <Compile Include="Utilities\TypeServices.cs" />
-    <Compile Include="World\Camera.cs" />
+    <Compile Include="Networking\PlumeServerClient.cs" />
+    <Compile Include="Networking\MessageDispatch.cs" />
+    <Compile Include="Networking\RequestConnectionMessageHandler.cs" />
+    <Compile Include="PlumeServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="World\EntityScope.cs" />
+    <Compile Include="ServerCore.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PlumeAPI\PlumeAPI.csproj">
+      <Project>{d29f2efd-ac31-49ab-ae52-26871c8de999}</Project>
+      <Name>PlumeAPI</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

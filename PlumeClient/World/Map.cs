@@ -1,14 +1,15 @@
 ﻿using PlumeAPI.Entities;
 using PlumeAPI.Modularization;
+using PlumeAPI.World;
 
-namespace PlumeEngine.World {
-	public class Map {
+namespace PlumeClient.World {
+	public class Map : EntityScope {
 		public static int TileSize = 32;
 		protected int Width;
 		protected int Height;
 		private BaseEntity[,] grid;
 
-		public Map(int width, int height) {
+		public Map(string name, int width, int height) : base(name) {
 			this.Width = width;
 			this.Height = height;
 			grid = new BaseEntity[Height, Width];
@@ -19,6 +20,7 @@ namespace PlumeEngine.World {
 					} else {
 						grid[x, y] = ModuleController.CreateEntityByReferencer("DevModule.Tiles.AStone", x, y); //Astone
 					}
+					RegisterEntity(grid[x, y]);
 				}
 			}
 		}

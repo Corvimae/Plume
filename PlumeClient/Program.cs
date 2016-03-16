@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PlumeEngine {
+namespace PlumeClient {
 #if WINDOWS || LINUX
 	/// <summary>
 	/// The main class.

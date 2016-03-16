@@ -36,9 +36,6 @@ namespace PlumeAPI.Entities {
 		protected virtual void Create(params object[] arguments) { }
 
 		public virtual void Destroy() {
-			if(Identifier != null) {
-				EntityController.UnregisterEntity(Identifier);
-			}
 		}
 
 		public bool HasPropertyEnabled(string setting) {
@@ -79,12 +76,6 @@ namespace PlumeAPI.Entities {
 
 		public void SetDrawDimensions(int width, int height) {
 			DrawDimensions = new Vector2(width, height);
-		}
-
-		public void RegisterAs(string identifier) {
-			EntityController.UnregisterEntity(Identifier);
-			Identifier = identifier;
-			EntityController.RegisterEntity(identifier, this);
 		}
 
 		public Dictionary<int, Action> GetDrawActionRegistry() {

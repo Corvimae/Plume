@@ -5,6 +5,7 @@ using PlumeAPI.Graphics;
 using PlumeAPI.Modularization;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
+using PlumeAPI.Networking;
 
 namespace DevModule {
 	class Main : PlumeModule {
@@ -25,6 +26,10 @@ namespace DevModule {
 
 		public override void Update() {
 			Frame += 1;
+		}
+
+		public override void UserDisconnected(Client user) {
+			Debug.WriteLine("DevModule: " + user.Name + " disconnected!");
 		}
 
 		public void TogglePause(EventData eventData) {

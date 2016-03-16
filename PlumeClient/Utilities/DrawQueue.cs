@@ -6,14 +6,18 @@ using System.Linq;
 using System.Text;
 using PlumeAPI.World;
 
-namespace PlumeEngine.Utilities {
+namespace PlumeClient.Utilities {
 	class DrawQueue {
 		//By placing base .draw operations in a new queue, we can speed up the draw process considerably.
 		private SortedDictionary<int, List<Action>> Operations = new SortedDictionary<int, List<Action>>();
+		private EntityScope Scope;
 
-		public DrawQueue() { }
+		public DrawQueue(EntityScope scope) {
+			this.Scope = scope;
+		}
 
-		public DrawQueue(IComparer<int> comparer) {
+		public DrawQueue(EntityScope scope, IComparer<int> comparer) {
+			this.Scope = scope;
 			this.Operations = new SortedDictionary<int, List<Action>>(comparer);
 		}
 
@@ -27,7 +31,7 @@ namespace PlumeEngine.Utilities {
 
 		public SortedDictionary<int, List<Action>> ProcessAndReturnDrawQueue() {
 			Operations.Clear();
-			foreach(BaseEntity entity in EntityController.GetAllEntities()) {
+			foreach(BaseEntity entity in Scope.GetEntities()) {
 				if(entity.HasPropertyEnabled("draw") && Camera.IsOnCamera(entity.GetDrawBoundry())) {
 					AddOperation(entity.DrawLayer, (Action) entity.GetDelegate("Draw"));
 					foreach(KeyValuePair<int, Action> entry in entity.GetDrawActionRegistry()) {
