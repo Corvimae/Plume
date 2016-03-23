@@ -10,7 +10,7 @@ namespace PlumeAPI.Networking {
 		public string Name;
 		public NetOutgoingMessage CreateMessage(NetPeer peer) {
 			NetOutgoingMessage message = peer.CreateMessage();
-			message.Write(Name);
+			message.Write(MessageController.GetMessageTypeId(Name));
 			message = PackageMessage(message);
 			return message;
 		}
@@ -20,8 +20,6 @@ namespace PlumeAPI.Networking {
 		}
 
 		public virtual void Handle(NetIncomingMessage message) {
-			// "Burn" the message type.
-			message.ReadString();
 		}
 	}
 }

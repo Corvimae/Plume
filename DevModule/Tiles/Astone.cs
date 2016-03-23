@@ -1,17 +1,18 @@
 ﻿using PlumeAPI.Events;
 using PlumeAPI.Graphics;
 using Microsoft.Xna.Framework;
+using PlumeRPG.Entities;
 
 namespace DevModule.Tiles {
-	public class AStone : Stone {
+	public class AStone : MapTile {
 
 		bool Clicked = false;
-		public AStone(int x, int y) : base(x, y) {
-			UnregisterDrawOnLayer(2);
+		public AStone() : base() {
 		}
 
-		public new static void Register() {
-		}
+		public AStone(int x, int y) : base(x, y) {
+			UnregisterDrawOnLayer(2);
+		} 
 
 		public override void OnClick(EventData bundle) {
 			base.OnClick(bundle);

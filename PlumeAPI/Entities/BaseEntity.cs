@@ -13,9 +13,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Lidgren.Network;
 
 namespace PlumeAPI.Entities {
-	public class BaseEntity : CoreObject, IDrawableEntity, IUpdatableEntity {
+	public class BaseEntity : CoreObject, IDrawableEntity {
 
 		protected Vector2 Position;
 		protected Vector2 DrawDimensions;
@@ -32,31 +33,31 @@ namespace PlumeAPI.Entities {
 
 		public int DrawLayer = 0;
 
-		public BaseEntity() {}
+		public BaseEntity() { }
+
 		protected virtual void Create(params object[] arguments) { }
 
-		public virtual void Destroy() {
-		}
+		public virtual void Destroy() { }
 
 		public bool HasPropertyEnabled(string setting) {
 			return EntityProperties[setting];
 		}
 
-		protected static void SetEntityProperties(Dictionary<string, bool> properties) {
+		protected void SetEntityProperties(Dictionary<string, bool> properties) {
 			foreach(KeyValuePair<string, bool> property in properties) {
 				if(EntityProperties.ContainsKey(property.Key)) {
 					EntityProperties[property.Key] = (bool)property.Value;
 				} else {
-					throw new InvalidEntityPropertyException(property.Key, GetReferencer());
+					throw new InvalidEntityPropertyException(property.Key, GetName());
 				}
 			}
 		}
 
-		protected static void SetEntityProperty(string property, bool value) {
+		protected void SetEntityProperty(string property, bool value) {
 			if(EntityProperties.ContainsKey(property)) {
-				EntityProperties[property] = (bool) value;
+				EntityProperties[property] = (bool)value;
 			} else {
-				throw new InvalidEntityPropertyException(property, GetReferencer());
+				throw new InvalidEntityPropertyException(property, GetName());
 			}
 		}
 
@@ -81,9 +82,10 @@ namespace PlumeAPI.Entities {
 		public Dictionary<int, Action> GetDrawActionRegistry() {
 			return DrawActionRegistry;
 		}
+
 		protected void DrawOnLayer(int level, string method) {
 			if(!DrawActionRegistry.ContainsKey(level)) {
-				DrawActionRegistry.Add(level, (Action) GetDelegate(method));
+				DrawActionRegistry.Add(level, (Action)GetDelegate(method));
 			}
 		}
 
@@ -94,14 +96,32 @@ namespace PlumeAPI.Entities {
 		}
 
 		public Rectangle GetDrawBoundry() {
-			return new Rectangle((int) Position.X, (int)Position.Y, (int)DrawDimensions.X, (int)DrawDimensions.Y);
+			return new Rectangle((int)Position.X, (int)Position.Y, (int)DrawDimensions.X, (int)DrawDimensions.Y);
 		}
 
 		public virtual void Draw() { }
 
-		public virtual void Update() { }
-
 		public virtual void OnClick(EventData data) { }
+		
+		public virtual void PackageForInitialTransfer(NetOutgoingMessage message) {
+			message.Write(GetName());
+			message.Write(Id);
+		}
+
+		public virtual void PackageForUpdate(NetOutgoingMessage message) {
+			message.Write(Id);
+		}
+
+		public virtual void UpdateFromMessage(object[] arguments) {
+		}
+
+		public static object[] UnpackageFromUpdate(NetIncomingMessage message) {
+			return new object[] { message.ReadInt32() };
+		}
+
+		public static object[] UnpackageFromInitialTransfer(NetIncomingMessage message) {
+			return new object[] { message.ReadInt32() };
+		}
 	}
 
 	class InvalidEntityPropertyException : Exception {

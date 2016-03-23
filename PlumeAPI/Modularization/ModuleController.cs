@@ -13,10 +13,18 @@ namespace PlumeAPI.Modularization {
 				public static string ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../../Modules";
 		#endif
 
+		public static PlumeEnvironment Environment = PlumeEnvironment.Client;
+
 		public static Dictionary<string, Module> ModuleRegistry = new Dictionary<string, Module>();
 
 		private static DependencyGraph<Module> dependencies;
 
+		public static void SetEnvironment(PlumeEnvironment environment) {
+			Environment = environment;
+			if(Environment == PlumeEnvironment.Server) {
+				ModuleDirectory = AppDomain.CurrentDomain.BaseDirectory + "../../../Modules";
+			}
+		}
 		public static void RegisterModule(string moduleName) {
 			Module module = new Module(moduleName);
 			ModuleRegistry.Add(moduleName, module);
@@ -51,7 +59,7 @@ namespace PlumeAPI.Modularization {
 		public static void ImportModules() {
 			List<DependencyNode<Module>> processOrder = dependencies.GetProcessingOrder();
 			foreach(DependencyNode<Module> module in processOrder) {
-				Debug.WriteLine("Importing script data for " + module.Item.Definition.ModuleInfo.Name);
+				Console.WriteLine("Importing script data for " + module.Item.Definition.ModuleInfo.Name);
 				module.Item.BuildModule();
 			}
 		}
@@ -59,8 +67,17 @@ namespace PlumeAPI.Modularization {
 		public static BaseEntity CreateEntityByReferencer(string referenceString, params object[] arguments) {
 			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referenceString);
 			if(ModuleRegistry.ContainsKey(referencer.Module)) {
-				BaseEntity entity = ModuleRegistry[referencer.Module].GetInstance(referencer.Name, arguments);
+				BaseEntity entity = ModuleRegistry[referencer.Module].GetInstance(referencer.GetReferencer(), arguments);
 				return entity;
+			} else {
+				throw new ModuleNotRegisteredException(referencer.Module);
+			}
+		}
+
+		public static Type GetEntityTypeByReferencer(string referencerString) {
+			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referencerString);
+			if(ModuleRegistry.ContainsKey(referencer.Module)) {
+				return ModuleRegistry[referencer.Module].GetEntityType(referencer.GetReferencer());
 			} else {
 				throw new ModuleNotRegisteredException(referencer.Module);
 			}
@@ -81,6 +98,11 @@ namespace PlumeAPI.Modularization {
 		}
 	} 
 
+	public enum PlumeEnvironment {
+		Client,
+		Server
+	}
+
 	public struct EntityReferencer {
 		public string Module;
 		public string Name;
@@ -90,7 +112,7 @@ namespace PlumeAPI.Modularization {
 		}
 
 		public string GetReferencer() {
-			return Module + "::" + Name;
+			return Module + "." + Name;
 		}
 	}
 	public class InvalidEntityTypeException : Exception {

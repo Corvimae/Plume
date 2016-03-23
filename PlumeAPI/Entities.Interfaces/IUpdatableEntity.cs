@@ -7,5 +7,7 @@ namespace PlumeAPI.Entities.Interfaces {
 	interface IUpdatableEntity {
 
 		void Update();
+		void UpdateServer();
+		void UpdateClient();
 	}
 }

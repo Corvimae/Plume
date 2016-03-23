@@ -1,8 +1,9 @@
 ﻿using PlumeAPI.Entities;
 using PlumeAPI.Modularization;
 using PlumeAPI.World;
+using System;
 
-namespace PlumeClient.World {
+namespace PlumeServer.World {
 	public class Map : EntityScope {
 		public static int TileSize = 32;
 		protected int Width;

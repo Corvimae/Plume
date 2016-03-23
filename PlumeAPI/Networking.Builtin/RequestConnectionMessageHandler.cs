@@ -5,15 +5,29 @@ using System.Text;
 using System.Threading.Tasks;
 using Lidgren.Network;
 using PlumeAPI.Networking;
+using PlumeAPI.Modularization;
+using PlumeAPI.World;
 
-namespace PlumeServer.Networking {
+namespace PlumeAPI.Networking.Builtin {
 	class RequestConnectionMessageHandler : MessageHandler {
+		string Username;
+
+		public RequestConnectionMessageHandler(string username) {
+			this.Name = "RequestConnection";
+			this.Username = username;
+		}
+
+		public override NetOutgoingMessage PackageMessage(NetOutgoingMessage message) {
+			message.Write(Username);
+			return message;
+		}
+
 		public override void Handle(NetIncomingMessage message) {
 			base.Handle(message);
 			string username = message.ReadString();
 			Console.WriteLine("Connection requested from " + username + " (" + message.SenderConnection.RemoteEndPoint.Address + ")");
-			PlumeServerClient newClient = new PlumeServerClient(username, message.SenderConnection);
-			MessageDispatch.Clients.Add(newClient);
+			Client newClient = new Client(username, message.SenderConnection);
+			ServerMessageDispatch.Clients.Add(newClient);
 			newClient.Connection.Approve();
 		}
 	}
