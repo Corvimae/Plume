@@ -1,11 +1,12 @@
-﻿using PlumeAPI.Attributes;
-using PlumeAPI.Entities;
+﻿using PlumeAPI.Entities;
 using PlumeAPI.Events;
 using PlumeAPI.Graphics;
 using PlumeAPI.Modularization;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
 using PlumeAPI.Networking;
+using DevModule.Messages;
+using System;
 
 namespace DevModule {
 	class Main : PlumeModule {
@@ -14,10 +15,11 @@ namespace DevModule {
 		public Main() {
 			Debug.WriteLine("DevModule launched");
 			EventController.RegisterEvent("pause");
-			RegisterTexture("excavator", "excavator.png");
-			RegisterAnimation("excavator_walk", "excavator", 32, 64, 3, 6);
+			TextureController.RegisterTexture("excavator", "excavator.png", GetModule());
+			TextureController.RegisterAnimation("excavator_walk", "excavator", 32, 64, 3, 6);
 			CallOnEvent("pause", 0, "TogglePause");
-			animation = GetAnimationInstance("excavator_walk"); //Inefficient but good for testing
+			animation = TextureController.GetAnimationInstance("excavator_walk"); //Inefficient but good for testing
+			MessageController.RegisterMessageType("DebugMessage", new DebugMessage(null));
 		}
 
 		public override void AfterLoad() {
@@ -28,8 +30,13 @@ namespace DevModule {
 			Frame += 1;
 		}
 
+		public override void UserConnected(Client user) {
+			Console.WriteLine("DevModule: User connected, ayy!");
+			user.Message(new DebugMessage("Hello!"));
+		}
+
 		public override void UserDisconnected(Client user) {
-			Debug.WriteLine("DevModule: " + user.Name + " disconnected!");
+			Console.WriteLine("DevModule: " + user.Name + " disconnected!");
 		}
 
 		public void TogglePause(EventData eventData) {

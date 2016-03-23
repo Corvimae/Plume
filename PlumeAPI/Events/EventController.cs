@@ -17,10 +17,10 @@ namespace PlumeAPI.Events {
 			if(!EventRegistry.Any(x => x.Key.Name == name)) {
 				EventDefinition definition = new EventDefinition(name);
 				EventRegistry.Add(definition, new SortedDictionary<int , List<Action<EventData>>>(Comparer<int>.Create((x, y) => y.CompareTo(x))));
-				Debug.WriteLine("Event " + name + " registered.");
+				Console.WriteLine("Event " + name + " registered.");
 				return definition;
 			} else {
-				Debug.WriteLine("Event " + name + " already exists, returning reference to its definition.");
+				Console.WriteLine("Event " + name + " already exists, returning reference to its definition.");
 				return EventRegistry.First(x => x.Key.Name == name).Key;
 			}
 		}

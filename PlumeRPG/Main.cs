@@ -1,5 +1,4 @@
-﻿using PlumeAPI.Attributes;
-using PlumeAPI.Modularization;
+﻿using PlumeAPI.Modularization;
 using System.Diagnostics;
 
 namespace PlumeRPG {

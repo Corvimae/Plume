@@ -1,6 +1,6 @@
 ﻿using Lidgren.Network;
 using PlumeAPI.Networking;
-using PlumeClient.Networking;
+using PlumeAPI.Networking.Builtin;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,14 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlumeClient.Networking {
-	public static class MessageDispatch {
+namespace PlumeAPI.Networking {
+	public static class ClientMessageDispatch {
 		static NetClient Client;
 		static NetPeerConfiguration Configuration;
-
-		static MessageDispatch() {
-		}
-
 		public static void Connect(string ip, int port) {
 			Configuration = new NetPeerConfiguration("PlumeServer");
 			Client = new NetClient(Configuration);
@@ -33,7 +29,7 @@ namespace PlumeClient.Networking {
 		public static NetOutgoingMessage CreateMessage(MessageHandler handler) {
 			return handler.CreateMessage(Client);
 		}
-		public static void Handle(string type, NetIncomingMessage message) {
+		public static void Handle(int type, NetIncomingMessage message) {
 			if(MessageController.MessageTypes.ContainsKey(type)) {
 				MessageController.MessageTypes[type].Handle(message);
 			} else {
@@ -46,9 +42,12 @@ namespace PlumeClient.Networking {
 				if(message.MessageType == NetIncomingMessageType.StatusChanged) {
 					if(message.SenderConnection.Status == NetConnectionStatus.Connected) {
 						Debug.WriteLine("Connection approved by server.");
+					} else if(message.SenderConnection.Status == NetConnectionStatus.Disconnected || message.SenderConnection.Status == NetConnectionStatus.Disconnecting) {
+						Debug.WriteLine("Disconnected from server.");
 					}
-				}else if(message.MessageType == NetIncomingMessageType.Data) {
-					MessageDispatch.Handle(message.ReadString(), message);
+				} else if(message.MessageType == NetIncomingMessageType.Data) {
+					int id = message.ReadInt32();
+					Handle(id, message);
 				}
 			}
 		}

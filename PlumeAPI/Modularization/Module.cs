@@ -10,7 +10,6 @@ using Newtonsoft.Json.Linq;
 using PlumeAPI.Utilities;
 using System.Text.RegularExpressions;
 using PlumeAPI.Entities;
-using PlumeAPI.Attributes;
 
 namespace PlumeAPI.Modularization {
 	public class Module {
@@ -33,25 +32,21 @@ namespace PlumeAPI.Modularization {
 		public void BuildModule() {
 			DLL = Assembly.LoadFile(Directory.FullName + "/" + Definition.ModuleInfo.Name + ".dll");
 			foreach(Type type in DLL.GetTypes()) {
-				string typeName = String.Join(".", type.FullName.Split('.').Skip(1));
-				TypeRegistry.Add(typeName, type);
+				TypeRegistry.Add(type.FullName, type);
 
-				TypeServices.TryInvokeStaticTypeMethod("SetModuleData", type, new object[] { this, typeName });
+				TypeServices.TryInvokeStaticTypeMethod("SetModuleData", type, new object[] { this });
 
 				if(type.FullName == Definition.StartupClass) {
-					BaseLogic = GetInstance(type.Name);
+					BaseLogic = GetInstance(type.FullName);
 				}
-
-				foreach(MethodInfo method in type.GetMethods(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.Public).
-					Where(x => x.GetCustomAttributes().Any(attr => attr.GetType().Name == "RunOnLoadAttribute"))) {
-					RunOnLoadAttribute attribute = (RunOnLoadAttribute) method.GetCustomAttribute(typeof(RunOnLoadAttribute));
-					if(!attribute.Exceptions.Any(x => x == type.Name)) {
-						TypeServices.TryInvokeStaticTypeMethod(method.Name, type, new object[] { });
-					}
+				MethodInfo method = type.GetMethod("Register", BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Instance);
+				if(method != null) {
+					TypeServices.InvokeMethod(Activator.CreateInstance(type), method.Name, new object[] { });
 				}
 			}
+
 			TryInvokeStartupMethod("AfterLoad");
-		}																 
+		}
 
 		public dynamic TryInvokeStartupMethod(string methodName, params object[] arguments) {
 			if(BaseLogic != null) {
@@ -71,27 +66,35 @@ namespace PlumeAPI.Modularization {
 			}
 		}
 
+		public Type GetEntityType(string typeName) {
+			if(TypeRegistry.ContainsKey(typeName)) {
+				return TypeRegistry[typeName];
+			} else {
+				throw new EntityTypeNotFoundException(typeName);
+			}
+		}
+
 		private bool LoadDefinition() {
 			try {
 				this.Definition = JsonConvert.DeserializeObject<ModuleDefinition>(File.ReadAllText(Directory.FullName + "/module.json"));
 				Log("Module definition file loaded successfully.");
 				return true;
 			} catch(DirectoryNotFoundException) {
-				Debug.WriteLine("Module " + Directory + " could not be found.");
+				Console.WriteLine("Module " + Directory + " could not be found.");
 			} catch(FileNotFoundException) {
-				Debug.WriteLine("module.json missing for module " + Directory);
+				Console.WriteLine("module.json missing for module " + Directory);
 			} catch(JsonSerializationException) {
-				Debug.WriteLine("Failed to serialize module " + Directory);
+				Console.WriteLine("Failed to serialize module " + Directory);
 			}
 			return false;
 		}
 
 		private void LogError(object error) {
-			Debug.WriteLine("Error in module " + Definition.ModuleInfo.Name + ": " + error.ToString());
+			Console.WriteLine("Error in module " + Definition.ModuleInfo.Name + ": " + error.ToString());
 		}
 
 		private void Log(object message) {
-			Debug.WriteLine("Module " + Definition.ModuleInfo.Name + ": " + message.ToString());
+			Console.WriteLine("Module " + Definition.ModuleInfo.Name + ": " + message.ToString());
 		}
 	}
 
