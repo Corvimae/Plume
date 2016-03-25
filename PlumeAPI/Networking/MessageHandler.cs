@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace PlumeAPI.Networking {
 	public class MessageHandler {
-		public string Name;
 		public NetOutgoingMessage CreateMessage(NetPeer peer) {
 			NetOutgoingMessage message = peer.CreateMessage();
-			message.Write(MessageController.GetMessageTypeId(Name));
+			message.Write(MessageController.GetMessageTypeId(GetType().FullName));
 			message = PackageMessage(message);
 			return message;
 		}

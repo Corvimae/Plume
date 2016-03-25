@@ -14,12 +14,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Lidgren.Network;
+using PlumeAPI.Attributes;
+using PlumeAPI.World;
 
 namespace PlumeAPI.Entities {
 	public class BaseEntity : CoreObject, IDrawableEntity {
 
-		protected Vector2 Position;
+		[Syncable]
+		public Vector2 Position { get; set; }
 		protected Vector2 DrawDimensions;
+		
+		public EntityScope Scope { get; set; }
 
 		protected string Identifier;
 
@@ -102,9 +107,9 @@ namespace PlumeAPI.Entities {
 		public virtual void Draw() { }
 
 		public virtual void OnClick(EventData data) { }
-		
+
 		public virtual void PackageForInitialTransfer(NetOutgoingMessage message) {
-			message.Write(GetName());
+			message.Write(EntityController.GetEntityIdByName(GetName()));
 			message.Write(Id);
 		}
 
@@ -113,6 +118,11 @@ namespace PlumeAPI.Entities {
 		}
 
 		public virtual void UpdateFromMessage(object[] arguments) {
+		}
+
+		public IEnumerable<PropertyInfo> GetSyncableProperties() {
+			return GetType().GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance).
+							Where(p => Attribute.IsDefined(p, typeof(SyncableAttribute))).OrderBy(p => p.Name);
 		}
 
 		public static object[] UnpackageFromUpdate(NetIncomingMessage message) {

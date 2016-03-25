@@ -22,10 +22,27 @@ namespace PlumeAPI.World {
 			}
 		}
 
+		public static List<EntityScope> GetAllScopes() {
+			return ScopeRegistry.Values.ToList();
+		}
+
+		public static BaseEntity GetEntityById(int id) {
+			if(Entities.ContainsKey(id)) {
+				return Entities[id];
+			} else {
+				Console.WriteLine("Entity with id " + id + " missing.");
+				return null;
+			}
+		}
+
 		public static int RegisterEntity(string scope, BaseEntity entity) {
 			if(ScopeRegistry.ContainsKey(scope)) {
 				entity.Id = GetNextHighestId();
-				ScopeRegistry[scope].EntitiesInScope.Add(entity.Id, entity);
+
+				EntityScope entityScope = ScopeRegistry[scope];
+				entityScope.EntitiesInScope.Add(entity.Id, entity);
+				entity.Scope = entityScope;
+
 				Entities.Add(entity.Id, entity);
 				return entity.Id;
 			}
@@ -49,7 +66,7 @@ namespace PlumeAPI.World {
 				BaseEntity entity = Entities[id];
 				entity.UpdateFromMessage(arguments);
 			} else {
-				Console.WriteLine("Entity id " + id + " missing.");
+				Console.WriteLine("Entity with id " + id + " missing.");
 			}
 		}
 		public static EntityScope GetScope(string name) {

@@ -26,7 +26,7 @@ namespace PlumeServer {
 			NetIncomingMessage message;
 			if((message = ServerMessageDispatch.Server.ReadMessage()) != null) {
 				if(message.MessageType == NetIncomingMessageType.ConnectionApproval) {
-					ServerMessageDispatch.Handle(MessageController.GetMessageTypeId("RequestConnection"), message);
+					ServerMessageDispatch.Handle(MessageController.GetMessageTypeId("PlumeAPI.Networking.Builtin.RequestConnectionMessageHandler"), message);
 				} else if(message.MessageType == NetIncomingMessageType.Data) {
 					ServerMessageDispatch.Handle(message.ReadInt32(), message);
 				} else if(message.MessageType == NetIncomingMessageType.StatusChanged) {
@@ -44,8 +44,8 @@ namespace PlumeServer {
 				}
 			}
 
-			foreach(BaseEntity entity in ScopeController.GetAllEntities()) {
-				if(entity.HasPropertyEnabled("update")) entity.Update();
+			foreach(EntityScope scope in ScopeController.GetAllScopes()) {
+				scope.Update();
 			}
 		}
 	}

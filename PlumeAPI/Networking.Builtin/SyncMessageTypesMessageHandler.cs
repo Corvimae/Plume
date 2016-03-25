@@ -8,10 +8,6 @@ using Lidgren.Network;
 
 namespace PlumeAPI.Networking.Builtin {
 	public class SyncMessageTypesMessageHandler : MessageHandler {
-		public SyncMessageTypesMessageHandler() {
-			Name = "SyncMessageTypes";
-		}
-
 		public override NetOutgoingMessage PackageMessage(NetOutgoingMessage message) {
 			foreach(KeyValuePair<string, int> pair in MessageController.MessageTypeIds) {
 				message.Write(pair.Key);

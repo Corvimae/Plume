@@ -28,12 +28,13 @@ namespace PlumeAPI.Networking {
 		}
 
 		public void Message(MessageHandler handler) {
-			Console.WriteLine("Sending " + handler.Name + "Message to " + Name);
+			Console.WriteLine("Sending " + handler.GetType().FullName + " message to " + Name);
 			ServerMessageDispatch.Send(handler, this);
 		}
 
 		public void SendInitialConnectionData() {
 			//TODO: Load from save
+			Message(new SyncEntityIdsMessageHandler());
 			SetAndSendScope(ScopeController.GetScope("MyMap"));
 		}
 	}

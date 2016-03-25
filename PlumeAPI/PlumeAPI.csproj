@@ -60,6 +60,7 @@
     <Compile Include="Entities\Animation.cs" />
     <Compile Include="Entities\BaseEntity.cs" />
     <Compile Include="Entities\CoreObject.cs" />
+    <Compile Include="Entities\EntityController.cs" />
     <Compile Include="Events\EventController.cs" />
     <Compile Include="Events\EventData.cs" />
     <Compile Include="Events\EventDefinition.cs" />
@@ -70,6 +71,8 @@
     <Compile Include="Modularization\ModuleController.cs" />
     <Compile Include="Modularization\ModuleDefinition.cs" />
     <Compile Include="Modularization\PlumeModule.cs" />
+    <Compile Include="Networking.Builtin\SendScopeSnapshotMessageHandler.cs" />
+    <Compile Include="Networking.Builtin\SyncEntityIdsMessageHandler.cs" />
     <Compile Include="Networking.Builtin\SyncMessageTypesMessageHandler.cs" />
     <Compile Include="Networking.Builtin\RequestConnectionMessageHandler.cs" />
     <Compile Include="Networking.Builtin\SendScopeMessageHandler.cs" />
@@ -86,7 +89,9 @@
     <Compile Include="World\Camera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="World\EntityScope.cs" />
+    <Compile Include="World\EntitySnapshot.cs" />
     <Compile Include="World\ScopeController.cs" />
+    <Compile Include="World\ScopeSnapshot.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
