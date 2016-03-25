@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace PlumeAPI.Attributes {
-	[AttributeUsage(AttributeTargets.Parameter)]
-	class SyncableAttribute : Attribute {
+	[AttributeUsage(AttributeTargets.Property)]
+	public class SyncableAttribute : Attribute {
 		public SyncableAttribute() { }
 	}
 }

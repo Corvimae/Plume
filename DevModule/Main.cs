@@ -19,7 +19,7 @@ namespace DevModule {
 			TextureController.RegisterAnimation("excavator_walk", "excavator", 32, 64, 3, 6);
 			CallOnEvent("pause", 0, "TogglePause");
 			animation = TextureController.GetAnimationInstance("excavator_walk"); //Inefficient but good for testing
-			MessageController.RegisterMessageType("DebugMessage", new DebugMessage(null));
+			MessageController.RegisterMessageType(new DebugMessage(null));
 		}
 
 		public override void AfterLoad() {

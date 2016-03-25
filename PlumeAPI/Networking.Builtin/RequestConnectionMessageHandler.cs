@@ -13,7 +13,6 @@ namespace PlumeAPI.Networking.Builtin {
 		string Username;
 
 		public RequestConnectionMessageHandler(string username) {
-			this.Name = "RequestConnection";
 			this.Username = username;
 		}
 
@@ -24,6 +23,7 @@ namespace PlumeAPI.Networking.Builtin {
 
 		public override void Handle(NetIncomingMessage message) {
 			base.Handle(message);
+			int id = message.ReadInt32();
 			string username = message.ReadString();
 			Console.WriteLine("Connection requested from " + username + " (" + message.SenderConnection.RemoteEndPoint.Address + ")");
 			Client newClient = new Client(username, message.SenderConnection);

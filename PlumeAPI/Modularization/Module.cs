@@ -39,10 +39,12 @@ namespace PlumeAPI.Modularization {
 				if(type.FullName == Definition.StartupClass) {
 					BaseLogic = GetInstance(type.FullName);
 				}
+
 				MethodInfo method = type.GetMethod("Register", BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Instance);
 				if(method != null) {
 					TypeServices.InvokeMethod(Activator.CreateInstance(type), method.Name, new object[] { });
 				}
+				EntityController.EntityIds.Add(EntityController.GetNextHighestId(), type.FullName);
 			}
 
 			TryInvokeStartupMethod("AfterLoad");

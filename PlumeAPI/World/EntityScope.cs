@@ -2,6 +2,7 @@
 using PlumeAPI.Entities;
 using PlumeAPI.Modularization;
 using PlumeAPI.Networking;
+using PlumeAPI.Networking.Builtin;
 using PlumeAPI.Utilities;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace PlumeAPI.World {
 	public class EntityScope {
 		public string Name;
 		public Dictionary<int, BaseEntity> EntitiesInScope = new Dictionary<int, BaseEntity>();
-
+		public ScopeSnapshot PreviousSnapshot { get; set; }
 		public EntityScope(string name) {
 			this.Name = name;
 			ScopeController.RegisterScope(name, this);
@@ -27,6 +28,18 @@ namespace PlumeAPI.World {
 			return EntitiesInScope.Values.ToList<BaseEntity>();
 		}
 
+		public void Update() {
+			foreach(BaseEntity entity in EntitiesInScope.Values) {
+				if(entity.HasPropertyEnabled("update")) entity.Update();
+			}
+
+			//Create a new snapshot
+			ScopeSnapshot snapshot = new ScopeSnapshot(this);
+			ServerMessageDispatch.SendToScope(new SendScopeSnapshotMessageHandler(snapshot), this);
+			//Set the previous snapshot to the new one
+			PreviousSnapshot = snapshot;
+		}
+
 		public void PackageForMessage(NetOutgoingMessage message) {
 			message.Write(Name);
 			foreach(BaseEntity entity in GetEntities()) {
@@ -35,7 +48,8 @@ namespace PlumeAPI.World {
 		}
 		public void UnpackageFromMessage(ref NetIncomingMessage message) {
 			while(message.Position < message.LengthBits) {
-				string referencer = message.ReadString();
+				int typeId = message.ReadInt32();
+				string referencer = EntityController.EntityIds[typeId];
 				Type entityType = ModuleController.GetEntityTypeByReferencer(referencer);
 				object[] entityArguments = TypeServices.InvokeStaticTypeMethod("UnpackageFromInitialTransfer", entityType, message);
 				BaseEntity entity = ScopeController.UpdateOrCreateWithId((int) entityArguments[0], this, referencer, entityArguments.Skip(1).ToArray());

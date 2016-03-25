@@ -12,28 +12,36 @@ namespace PlumeAPI.Networking {
 		public static Dictionary<int, MessageHandler> MessageTypes = new Dictionary<int, MessageHandler>();
 		public static List<Client> Clients = new List<Client>();
 
-		static int nextHighestId = 0;
+		static int NextHighestId = 0;
 		static MessageController() {
-			MessageController.RegisterMessageType("SyncMessageTypes", new SyncMessageTypesMessageHandler());
-			MessageController.RegisterMessageType("UpdateEntity", new UpdateEntityMessageHandler(null));
-			MessageController.RegisterMessageType("SendScope", new SendScopeMessageHandler(null));
-			MessageController.RegisterMessageType("RequestConnection", new RequestConnectionMessageHandler(null));
+			MessageController.RegisterMessageType(new SyncMessageTypesMessageHandler());
+			MessageController.RegisterMessageType(new SyncEntityIdsMessageHandler());
+			MessageController.RegisterMessageType(new UpdateEntityMessageHandler(null));
+			MessageController.RegisterMessageType(new SendScopeMessageHandler(null));
+			MessageController.RegisterMessageType(new RequestConnectionMessageHandler(null));
+			MessageController.RegisterMessageType(new SendScopeSnapshotMessageHandler(null));
 		}
-		public static void RegisterMessageType(string type, MessageHandler handlerInstance) {
+		public static void RegisterMessageType(MessageHandler handlerInstance) {
+			string type = handlerInstance.GetType().FullName;
 			if(!MessageTypeIds.ContainsKey(type)) {
 				int id = RegisterMessageTypeId(type);
 				MessageTypes.Add(id, handlerInstance);
 			}
 		}
 
-		public static int RegisterMessageTypeId(string type) {
-			int id = nextHighestId++;
+		static int RegisterMessageTypeId(string type) {
+			int id = NextHighestId++;
 			MessageTypeIds.Add(type, id);
 			return id;
 		}
 
 		public static int GetMessageTypeId(string name) {
-			return MessageTypeIds[name];
+			try {
+				return MessageTypeIds[name];
+			} catch (Exception) {
+				Console.WriteLine("Unable to find message type of name " + name + ".");
+				return -1;
+			}
 		}
 
 		public static int GetMessageTypeId(object handler) {
@@ -46,4 +54,11 @@ namespace PlumeAPI.Networking {
 	}
 
 	public class InvalidMessageTypeException : Exception { };
+
+	public class MessageHandlerUnnamedException : Exception {
+		Type Type;
+		public MessageHandlerUnnamedException(Type type) {
+			Type = type;
+		}
+	}
 }
