@@ -44,13 +44,14 @@ namespace DevModule {
 		}
 
 		public override void Draw() {
-			Canvas.DrawAnimation(animation, 0, 0, Color.White);
+			
+			/*Canvas.DrawAnimation(animation, 0, 0, Color.White);
 			if(Frame % 100 == 0) {
 				animation.FlipHorizontal = !animation.FlipHorizontal;
 			}
 			if(Frame % 1000 == 0) {
 				animation.FlipVertical = !animation.FlipVertical;
-			}
+			}*/
 		}
 	}
 }

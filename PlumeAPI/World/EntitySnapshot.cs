@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using PlumeAPI.Attributes;
 using PlumeAPI.Entities;
+using PlumeAPI.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +13,17 @@ using System.Threading.Tasks;
 namespace PlumeAPI.World {
 	public class EntitySnapshot {
 		public int Id;
-		Dictionary<string, object> SyncableProperties = new Dictionary<string, object>();
-		static Dictionary<Type, Action<object, NetOutgoingMessage>> MessageWriters = new Dictionary<Type, Action<object, NetOutgoingMessage>>();
-		static Dictionary<Type, Func<NetIncomingMessage, object>> MessageReaders = new Dictionary<Type, Func<NetIncomingMessage, object>>();
+		public long Tick;
+
+		Dictionary<string, SyncablePropertyValue> ChangedProperties = new Dictionary<string, SyncablePropertyValue>();
+		Dictionary<string, object> AllProperties = new Dictionary<string, object>();
+
+		static Dictionary<Type, Action<object, OutgoingMessage>> MessageWriters = new Dictionary<Type, Action<object, OutgoingMessage>>();
+		static Dictionary<Type, Func<IncomingMessage, object>> MessageReaders = new Dictionary<Type, Func<IncomingMessage, object>>();
+
 		public EntitySnapshot(BaseEntity entity) {
 			Id = entity.Id;
+			Tick = ServerMessageDispatch.GetTick();
 
 			EntitySnapshot previousEntitySnapshot = null;
 			ScopeSnapshot previousScopeSnapshot = entity.Scope.PreviousSnapshot;
@@ -25,31 +32,38 @@ namespace PlumeAPI.World {
 			}
 
 			IEnumerable<PropertyInfo> properties = entity.GetSyncableProperties();
+			int i = 0;
 			foreach(PropertyInfo property in properties) {
 				object value = property.GetValue(entity);
-				if(previousEntitySnapshot == null || previousEntitySnapshot.SyncableProperties[property.Name] != value) {
-					SyncableProperties.Add(property.Name, value);
+				AllProperties.Add(property.Name, value);
+				if(previousEntitySnapshot == null || !value.Equals(previousEntitySnapshot.AllProperties[property.Name])) {
+					ChangedProperties.Add(property.Name, new SyncablePropertyValue(i, value));
+				}
+				i++;
+			}
+		}
+
+		public void AddToMessage(OutgoingMessage message) {
+			if(ChangedProperties.Count() > 0) {
+				message.Write(Id);
+				message.Write((byte)ChangedProperties.Count());
+				foreach(KeyValuePair<string, SyncablePropertyValue> property in ChangedProperties) {
+					try {
+						message.Write((byte)property.Value.Position);
+						MessageWriters[property.Value.Value.GetType()].Invoke(property.Value.Value, message);
+					} catch(KeyNotFoundException) {
+						Console.WriteLine("Unable to parse syncable property " + property.Key + ": no valid message writer for type " + property.Value.Value.GetType().FullName + ".");
+					}
 				}
 			}
 		}
 
-		public void AddToMessage(NetOutgoingMessage message) {
-			message.Write(Id);
-			foreach(KeyValuePair<string, object> property in SyncableProperties) {
-				try {
-					MessageWriters[property.Value.GetType()].Invoke(property.Value, message);
-				} catch(KeyNotFoundException) {
-					Console.WriteLine("Unable to parse syncable property " + property.Key + ": no valid message writer for type " + property.Value.GetType().FullName + ".");
-				}
-			}
-		}
-
-		public static void RegisterTypeHandler(Type type, Func<NetIncomingMessage, object> incoming, Action<object, NetOutgoingMessage> outgoing) {
+		public static void RegisterTypeHandler(Type type, Func<IncomingMessage, object> incoming, Action<object, OutgoingMessage> outgoing) {
 			MessageReaders.Add(type, incoming);
 			MessageWriters.Add(type, outgoing);
 		}
 
-		public static object ReadType(Type type, NetIncomingMessage message) {
+		public static object ReadType(Type type, IncomingMessage message) {
 			try {
 				return MessageReaders[type].Invoke(message);
 			} catch(KeyNotFoundException) {
@@ -116,6 +130,15 @@ namespace PlumeAPI.World {
 					message.Write(vec2.Y);
 				}
 			);
+		}
+	}
+
+	struct SyncablePropertyValue {
+		public int Position;
+		public object Value;
+		public SyncablePropertyValue(int position, object value) {
+			Position = position;
+			Value = value;
 		}
 	}
 

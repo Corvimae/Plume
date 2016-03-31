@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace PlumeAPI.Networking {
 	public class MessageHandler {
-		public NetOutgoingMessage CreateMessage(NetPeer peer) {
-			NetOutgoingMessage message = peer.CreateMessage();
+		public OutgoingMessage CreateMessage(NetPeer peer) {
+			OutgoingMessage message = new OutgoingMessage(peer.CreateMessage());
 			message.Write(MessageController.GetMessageTypeId(GetType().FullName));
 			message = PackageMessage(message);
 			return message;
 		}
 
-		public virtual NetOutgoingMessage PackageMessage(NetOutgoingMessage message) {
+		public virtual OutgoingMessage PackageMessage(OutgoingMessage message) {
 			return message;
 		}
 
-		public virtual void Handle(NetIncomingMessage message) {
+		public virtual void Handle(IncomingMessage message) {
 		}
 	}
 }

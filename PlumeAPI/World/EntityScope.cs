@@ -28,25 +28,36 @@ namespace PlumeAPI.World {
 			return EntitiesInScope.Values.ToList<BaseEntity>();
 		}
 
+		public IEnumerable<Client> GetClients() {
+			return ServerMessageDispatch.Clients.Where(x => x.Scope == this);
+		}
+		
+		public void Broadcast(MessageHandler handler) {
+			ServerMessageDispatch.SendToScope(handler, this);
+		}
+
+
 		public void Update() {
 			foreach(BaseEntity entity in EntitiesInScope.Values) {
 				if(entity.HasPropertyEnabled("update")) entity.Update();
 			}
 
-			//Create a new snapshot
-			ScopeSnapshot snapshot = new ScopeSnapshot(this);
-			ServerMessageDispatch.SendToScope(new SendScopeSnapshotMessageHandler(snapshot), this);
+			//Create a new snapshot if anyone's here.
+			if(GetClients().Count() > 0) {
+				ScopeSnapshot snapshot = new ScopeSnapshot(this);
+				ServerMessageDispatch.SendToScope(new SendScopeSnapshotMessageHandler(snapshot), this);
+				PreviousSnapshot = snapshot;
+			}
 			//Set the previous snapshot to the new one
-			PreviousSnapshot = snapshot;
 		}
 
-		public void PackageForMessage(NetOutgoingMessage message) {
+		public void PackageForMessage(OutgoingMessage message) {
 			message.Write(Name);
 			foreach(BaseEntity entity in GetEntities()) {
 				entity.PackageForInitialTransfer(message);
 			}
 		}
-		public void UnpackageFromMessage(ref NetIncomingMessage message) {
+		public void UnpackageFromMessage(ref IncomingMessage message) {
 			while(message.Position < message.LengthBits) {
 				int typeId = message.ReadInt32();
 				string referencer = EntityController.EntityIds[typeId];

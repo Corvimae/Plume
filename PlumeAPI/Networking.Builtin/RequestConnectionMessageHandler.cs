@@ -16,17 +16,17 @@ namespace PlumeAPI.Networking.Builtin {
 			this.Username = username;
 		}
 
-		public override NetOutgoingMessage PackageMessage(NetOutgoingMessage message) {
+		public override OutgoingMessage PackageMessage(OutgoingMessage message) {
 			message.Write(Username);
 			return message;
 		}
 
-		public override void Handle(NetIncomingMessage message) {
+		public override void Handle(IncomingMessage message) {
 			base.Handle(message);
 			int id = message.ReadInt32();
 			string username = message.ReadString();
-			Console.WriteLine("Connection requested from " + username + " (" + message.SenderConnection.RemoteEndPoint.Address + ")");
-			Client newClient = new Client(username, message.SenderConnection);
+			Console.WriteLine("Connection requested from " + username + " (" + message.GetMessage().SenderConnection.RemoteEndPoint.Address + ")");
+			Client newClient = new Client(username, message.GetMessage().SenderConnection);
 			ServerMessageDispatch.Clients.Add(newClient);
 			newClient.Connection.Approve();
 		}

@@ -24,6 +24,7 @@ namespace PlumeAPI.Modularization {
 
 		Dictionary<string, Type> TypeRegistry = new Dictionary<string, Type>();
 
+
 		public Module(string name) {
 			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + name);
 			LoadDefinition();
@@ -44,7 +45,7 @@ namespace PlumeAPI.Modularization {
 				if(method != null) {
 					TypeServices.InvokeMethod(Activator.CreateInstance(type), method.Name, new object[] { });
 				}
-				EntityController.EntityIds.Add(EntityController.GetNextHighestId(), type.FullName);
+				EntityController.AddEntityType(type.FullName);
 			}
 
 			TryInvokeStartupMethod("AfterLoad");

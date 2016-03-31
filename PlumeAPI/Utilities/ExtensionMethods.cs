@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace PlumeAPI.Utilities {
-	static class Utilities {
+	static class ExtensionMethods {
 		public static bool ChangeKey<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey oldKey, TKey newKey) {
 			TValue value;
 			if(!dict.TryGetValue(oldKey, out value))

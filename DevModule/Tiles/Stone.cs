@@ -8,19 +8,22 @@ using PlumeAPI.Attributes;
 
 namespace DevModule.Tiles {
 	public class Stone : MapTile {
-		public Stone() : base() { }
+		Random random;
+		public Stone() : base() {
+		}
 
 		[Syncable]
-		public byte Bazoople { get; set; }
+		public int Bazoople { get; set; }
+
 		public Stone(int x, int y) : base(x, y) {
 			DrawOnLayer(2, "SecondDraw");
 			SetEntityProperty("update", true);
 			Bazoople = 0;
+			random = new Random(("" + Position.X + Position.Y).GetHashCode());
 		}
 
 		public override void UpdateServer() {
-			SetPosition(Position.X + 1, Position.Y);
-			Bazoople += 1;
+			if(random.Next(0,100) > 80) Bazoople++;
 		}
 
 		public override void Draw() {
