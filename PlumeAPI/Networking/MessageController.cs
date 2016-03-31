@@ -14,12 +14,14 @@ namespace PlumeAPI.Networking {
 
 		static int NextHighestId = 0;
 		static MessageController() {
+			MessageController.RegisterMessageType(new SendModuleRequirementsMessageHandler());
 			MessageController.RegisterMessageType(new SyncMessageTypesMessageHandler());
 			MessageController.RegisterMessageType(new SyncEntityIdsMessageHandler());
-			MessageController.RegisterMessageType(new UpdateEntityMessageHandler(null));
 			MessageController.RegisterMessageType(new SendScopeMessageHandler(null));
 			MessageController.RegisterMessageType(new RequestConnectionMessageHandler(null));
 			MessageController.RegisterMessageType(new SendScopeSnapshotMessageHandler(null));
+			MessageController.RegisterMessageType(new ForwardCommandToServerMessageHandler(null));
+			MessageController.RegisterMessageType(new SyncEntityToClientMessageHandler(null));
 		}
 		public static void RegisterMessageType(MessageHandler handlerInstance) {
 			string type = handlerInstance.GetType().FullName;

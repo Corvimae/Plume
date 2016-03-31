@@ -14,6 +14,7 @@ using PlumeAPI.Events;
 using System.Reflection;
 using PlumeClient.Utilities;
 using PlumeAPI.Networking;
+using PlumeAPI.Commands;
 
 namespace PlumeClient {
 	/// <summary>
@@ -34,6 +35,8 @@ namespace PlumeClient {
 			graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
 			graphics.IsFullScreen = false;
+			graphics.PreferredBackBufferWidth = 1280;
+			graphics.PreferredBackBufferHeight = 840;
 
 			this.Exiting += HandleGameExiting;
 
@@ -86,6 +89,8 @@ namespace PlumeClient {
 				Exit();
 			}
 
+			EntityController.SetSnapshotsForMoment();
+
 			ClientMessageDispatch.ProcessIncomingMessages();
 
 			//Handle Input
@@ -110,8 +115,32 @@ namespace PlumeClient {
 				Camera.Scale += 0.05f;
 			}
 
+			if(keyboardState.IsKeyDown(Keys.W) && !previousKeyboardState.IsKeyDown(Keys.W)) {
+				CommandController.ParseCommand("+north");
+			} else if(!keyboardState.IsKeyDown(Keys.W) && previousKeyboardState.IsKeyDown(Keys.W)) {
+				CommandController.ParseCommand("-north");
+			}
+
+			if(keyboardState.IsKeyDown(Keys.A) && !previousKeyboardState.IsKeyDown(Keys.A)) {
+				CommandController.ParseCommand("+west");
+			} else if(!keyboardState.IsKeyDown(Keys.A) && previousKeyboardState.IsKeyDown(Keys.A)) {
+				CommandController.ParseCommand("-west");
+			}
+
+			if(keyboardState.IsKeyDown(Keys.S) && !previousKeyboardState.IsKeyDown(Keys.S)) {
+				CommandController.ParseCommand("+south");
+			} else if(!keyboardState.IsKeyDown(Keys.S) && previousKeyboardState.IsKeyDown(Keys.S)) {
+				CommandController.ParseCommand("-south");
+			}
+
+			if(keyboardState.IsKeyDown(Keys.D) && !previousKeyboardState.IsKeyDown(Keys.D)) {
+				CommandController.ParseCommand("+east");
+			} else if(!keyboardState.IsKeyDown(Keys.D) && previousKeyboardState.IsKeyDown(Keys.D)) {
+				CommandController.ParseCommand("-east");
+			}
+
 			if(IsKeyPressed(keyboardState, Keys.E)) {
-				EventController.Fire("pause", new EventData(new Dictionary<string, object>()));
+				CommandController.ParseCommand("lerp_delay 100");
 			}
 
 			if(mouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton != ButtonState.Pressed) {
@@ -177,7 +206,7 @@ namespace PlumeClient {
 			//UI Layer
 			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
 			spriteBatch.DrawString(FontRepository.System,
-				"FPS: " + Math.Round(frameRate) + " | Draw: " + Math.Round((DateTime.Now - start).TotalMilliseconds) + "ms",
+				"FPS: " + Math.Round(frameRate) + " | Draw: " + Math.Round((DateTime.Now - start).TotalMilliseconds) + "ms | Ping: " + Math.Round(ClientMessageDispatch.Ping*1000) + "ms",
 				Camera.ConvertViewportToCamera(new Vector2(5, 5)), Color.White);
 			spriteBatch.End();
 			base.Draw(gameTime);

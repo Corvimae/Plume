@@ -1,4 +1,6 @@
 ﻿using Lidgren.Network;
+using PlumeAPI.Entities;
+using PlumeAPI.Modularization;
 using PlumeAPI.Networking;
 using PlumeAPI.Networking.Builtin;
 using PlumeAPI.World;
@@ -13,6 +15,9 @@ namespace PlumeAPI.Networking {
 		public string Name;
 		public NetConnection Connection;
 		public EntityScope Scope;
+		Dictionary<string, object> _clientStorage = new Dictionary<string, object>();
+
+
 		public Client(string name, NetConnection connection) { 
 			this.Name = name;
 			this.Connection = connection;
@@ -36,6 +41,18 @@ namespace PlumeAPI.Networking {
 			//TODO: Load from save
 			Message(new SyncEntityIdsMessageHandler());
 			SetAndSendScope(ScopeController.GetScope("MyMap"));
+			ModuleController.InvokeStartupMethod("UserFullyLoaded", this);
+		}
+
+		public object this[string key] {
+			get { return _clientStorage[key]; }
+			set {
+				if(!_clientStorage.ContainsKey(key)) {
+					_clientStorage.Add(key, value);
+				} else {
+					_clientStorage[key] = value;
+				}
+			}
 		}
 	}
 }

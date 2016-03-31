@@ -8,7 +8,7 @@ using PlumeAPI.Entities;
 
 namespace PlumeAPI.Networking.Builtin {
 	class SyncEntityIdsMessageHandler : MessageHandler {
-		public override NetOutgoingMessage PackageMessage(NetOutgoingMessage message) {
+		public override OutgoingMessage PackageMessage(OutgoingMessage message) {
 			foreach(KeyValuePair<int, string> pair in EntityController.EntityIds) {
 				message.Write(pair.Key);
 				message.Write(pair.Value);
@@ -16,7 +16,7 @@ namespace PlumeAPI.Networking.Builtin {
 			return message;
 		}
 
-		public override void Handle(NetIncomingMessage message) {
+		public override void Handle(IncomingMessage message) {
 			EntityController.EntityIds.Clear();
 			while(message.Position < message.LengthBits) {
 				EntityController.EntityIds.Add(message.ReadInt32(), message.ReadString());

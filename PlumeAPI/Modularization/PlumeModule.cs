@@ -15,5 +15,7 @@ namespace PlumeAPI.Modularization {
 		public virtual void UserConnected(Client user) { }
 		public virtual void UserDisconnected(Client user) { }
 
+		public virtual void UserFullyLoaded(Client user) { }
+
 	}
 }

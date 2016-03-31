@@ -56,12 +56,19 @@ namespace PlumeAPI.Modularization {
 			}
 		}
 
+		public static bool IsModuleRegistered(string name, string version, string author) {
+			return GetModules().Any(x => x.Definition.ModuleInfo.Name == name && x.Definition.ModuleInfo.Version == version && x.Definition.ModuleInfo.Author == author);
+		}
 		public static void ImportModules() {
 			List<DependencyNode<Module>> processOrder = dependencies.GetProcessingOrder();
 			foreach(DependencyNode<Module> module in processOrder) {
 				Console.WriteLine("Importing script data for " + module.Item.Definition.ModuleInfo.Name);
 				module.Item.BuildModule();
 			}
+		}
+
+		public static IEnumerable<Module> GetModules() {
+			return ModuleRegistry.Values;
 		}
 
 		public static BaseEntity CreateEntityByReferencer(string referenceString, params object[] arguments) {

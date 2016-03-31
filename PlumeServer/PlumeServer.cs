@@ -24,7 +24,6 @@ namespace PlumeServer {
 			ModuleController.ResolveDependencies();
 			ModuleController.ImportModules();
 
-			Map testMap = new Map("MyMap", 50, 50);
 
 			Configuration = new NetPeerConfiguration("PlumeServer");
 			Configuration.Port = 25656;
@@ -34,6 +33,9 @@ namespace PlumeServer {
 			ServerMessageDispatch.Server = new NetServer(Configuration);
 			ServerMessageDispatch.Server.Start();
 			Console.WriteLine(Configuration.AppIdentifier + " server started on port " + Configuration.Port + ".");
+
+			Map testMap = new Map("MyMap", 50, 50);
+
 			Core = new ServerCore();
 			Core.Begin();
 		}

@@ -8,34 +8,40 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Timers;
 
 namespace PlumeServer {
 	class ServerCore {
-		TimeSpan RefreshRate = new TimeSpan(0, 0, 0, 0, 16);
+		DateTime LastUpdate = DateTime.Now;
 
 		public void Begin() {
-			DateTime time = DateTime.Now;
-			Console.WriteLine("Server started, waiting for new connections.");
+			Console.WriteLine("Server ready, waiting for new connections.");
 			while(true) {
-				Update();
+				DateTime time = DateTime.Now;
+				if((time - LastUpdate).TotalMilliseconds >= Configuration.TickRate) {
+					ServerMessageDispatch.IncrementTick();
+					Update();
+					LastUpdate = time;
+				}	
 			}
 		}
 
 		public void Update() {
-			NetIncomingMessage message;
-			if((message = ServerMessageDispatch.Server.ReadMessage()) != null) {
-				if(message.MessageType == NetIncomingMessageType.ConnectionApproval) {
+			NetIncomingMessage rawMessage;
+			if((rawMessage = ServerMessageDispatch.Server.ReadMessage()) != null) {
+				IncomingMessage message = new IncomingMessage(rawMessage);
+				if(rawMessage.MessageType == NetIncomingMessageType.ConnectionApproval) {
 					ServerMessageDispatch.Handle(MessageController.GetMessageTypeId("PlumeAPI.Networking.Builtin.RequestConnectionMessageHandler"), message);
-				} else if(message.MessageType == NetIncomingMessageType.Data) {
+				} else if(rawMessage.MessageType == NetIncomingMessageType.Data) {
 					ServerMessageDispatch.Handle(message.ReadInt32(), message);
-				} else if(message.MessageType == NetIncomingMessageType.StatusChanged) {
-					if(message.SenderConnection.Status == NetConnectionStatus.Connected) {
+				} else if(rawMessage.MessageType == NetIncomingMessageType.StatusChanged) {
+					if(rawMessage.SenderConnection.Status == NetConnectionStatus.Connected) {
 						Client client = ServerMessageDispatch.GetSender(message);
+						client.Message(new SendModuleRequirementsMessageHandler());
 						client.Message(new SyncMessageTypesMessageHandler());
 						ModuleController.InvokeStartupMethod("UserConnected", client);
 						client.SendInitialConnectionData();
-					} else if(message.SenderConnection.Status == NetConnectionStatus.Disconnected || message.SenderConnection.Status == NetConnectionStatus.Disconnecting) {
+					} else if(rawMessage.SenderConnection.Status == NetConnectionStatus.Disconnected || rawMessage.SenderConnection.Status == NetConnectionStatus.Disconnecting) {
 						Client sender = ServerMessageDispatch.GetSender(message);
 						ModuleController.InvokeStartupMethod("UserDisconnected", sender);
 						MessageController.Clients.Remove(sender);

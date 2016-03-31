@@ -16,14 +16,15 @@ using System.Text;
 using Lidgren.Network;
 using PlumeAPI.Attributes;
 using PlumeAPI.World;
+using PlumeAPI.Networking;
 
 namespace PlumeAPI.Entities {
 	public class BaseEntity : CoreObject, IDrawableEntity {
 
 		[Syncable]
-		public Vector2 Position { get; set; }
+		public virtual Vector2 Position { get; set; }
 		protected Vector2 DrawDimensions;
-		
+
 		public EntityScope Scope { get; set; }
 
 		protected string Identifier;
@@ -38,7 +39,15 @@ namespace PlumeAPI.Entities {
 
 		public int DrawLayer = 0;
 
-		public BaseEntity() { }
+		IEnumerable<PropertyInfo> SyncableProperties;
+		IEnumerable<PropertyInfo> InterpolatingProperties;
+
+		public BaseEntity() {
+			SyncableProperties = GetType().GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance).
+					Where(p => Attribute.IsDefined(p, typeof(SyncableAttribute))).OrderBy(p => p.Name);
+			InterpolatingProperties = GetType().GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance).
+							Where(p => Attribute.IsDefined(p, typeof(InterpolateAttribute))).OrderBy(p => p.Name);
+		}
 
 		protected virtual void Create(params object[] arguments) { }
 
@@ -104,34 +113,109 @@ namespace PlumeAPI.Entities {
 			return new Rectangle((int)Position.X, (int)Position.Y, (int)DrawDimensions.X, (int)DrawDimensions.Y);
 		}
 
+
+		public override void UpdateClient() {
+			UpdateSyncableProperties();
+		}
+		protected void UpdateSyncableProperties() {
+			ClientEntitySnapshot snapshotBeforePoint = EntityController.SnapshotBeforeMoment;
+			ClientEntitySnapshot snapshotAfterPoint = EntityController.SnapshotAfterMoment;
+
+			if(snapshotBeforePoint != null && snapshotAfterPoint != null) {
+			Dictionary<PropertyInfo, object> beforeProperties, afterProperties;
+
+				snapshotBeforePoint.Properties.TryGetValue(this.Id, out beforeProperties);
+				snapshotAfterPoint.Properties.TryGetValue(this.Id, out afterProperties);
+
+				if(beforeProperties != null) {
+					foreach(PropertyInfo property in beforeProperties.Keys) {
+						if(InterpolatingProperties.Contains(property)) {
+							if(afterProperties != null) {
+								object beforeValue, afterValue;
+								beforeProperties.TryGetValue(property, out beforeValue);
+								afterProperties.TryGetValue(property, out afterValue);
+								if(afterValue != null) {
+									double fractionBetweenPoints = ((EntityController.InterpolationPoint - snapshotBeforePoint.Received).TotalMilliseconds /
+										(snapshotAfterPoint.Received - snapshotBeforePoint.Received).TotalMilliseconds) - 1;
+									if(EntityInterpolation.HasInterpolator(property.PropertyType)) {
+										property.SetValue(this, EntityInterpolation.Interpolate(
+											property.PropertyType,
+											beforeValue,
+											afterValue,
+											fractionBetweenPoints
+										));
+									} else {
+										Console.WriteLine(property.PropertyType.FullName + " is not an interpolatable type.");
+									}
+								} else {
+									property.SetValue(this, beforeValue);
+								}
+							}
+						} else if(beforeProperties.ContainsKey(property)) {
+							property.SetValue(this, beforeProperties[property]);
+						}
+					}
+				}
+			}
+		}
+
+		/*protected void Interpolate() {
+			foreach(PropertyInfo property in GetInterpolatingProperties()) {
+				//Find the previous two timestamps
+				if(Snapshots.Count() >= 2) {
+					IEnumerable<ClientEntitySnapshot> reversedSnapshots = Snapshots.Reverse<ClientEntitySnapshot>();
+					IEnumerable<ClientEntitySnapshot> relevantSnapshots = reversedSnapshots.Where(x => x.Properties.Keys.Contains(property));
+					ClientEntitySnapshot mostRecent = relevantSnapshots.FirstOrDefault();
+					ClientEntitySnapshot secondMostRecent = relevantSnapshots.Skip(1).FirstOrDefault();
+					DateTime now = DateTime.UtcNow;
+					if(reversedSnapshots.First().Properties.ContainsKey(property)) {
+						if(mostRecent != null && secondMostRecent != null) {
+							double timeBetweenUpdates = (mostRecent.Received - secondMostRecent.Received).TotalMilliseconds;
+							if(timeBetweenUpdates < Configuration.InterpolationLimit) {
+								double timeSinceLastUpdate = (now - mostRecent.Received).TotalMilliseconds;
+								if(EntityInterpolation.HasInterpolator(property.PropertyType)) {
+									property.SetValue(this, EntityInterpolation.Interpolate(
+										property.PropertyType,
+										mostRecent.Properties[property],
+										secondMostRecent.Properties[property],
+										timeBetweenUpdates,
+										timeSinceLastUpdate
+									));
+								} else {
+									Console.WriteLine(property.PropertyType.FullName + " is not an interpolatable type.");
+								}
+							} else {
+								property.SetValue(this, mostRecent.Properties[property]);
+							}
+						}
+					} else {
+						property.SetValue(this, mostRecent.Properties[property]);
+					}
+				}
+			}
+		}*/
+
 		public virtual void Draw() { }
 
 		public virtual void OnClick(EventData data) { }
 
-		public virtual void PackageForInitialTransfer(NetOutgoingMessage message) {
+		public virtual void PackageForInitialTransfer(OutgoingMessage message) {
 			message.Write(EntityController.GetEntityIdByName(GetName()));
 			message.Write(Id);
 		}
 
-		public virtual void PackageForUpdate(NetOutgoingMessage message) {
-			message.Write(Id);
-		}
-
-		public virtual void UpdateFromMessage(object[] arguments) {
-		}
-
 		public IEnumerable<PropertyInfo> GetSyncableProperties() {
-			return GetType().GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance).
-							Where(p => Attribute.IsDefined(p, typeof(SyncableAttribute))).OrderBy(p => p.Name);
+			return SyncableProperties;
 		}
 
-		public static object[] UnpackageFromUpdate(NetIncomingMessage message) {
+		public IEnumerable<PropertyInfo> GetInterpolatingProperties() {
+			return InterpolatingProperties;
+		}
+		public static object[] UnpackageFromInitialTransfer(IncomingMessage message) {
 			return new object[] { message.ReadInt32() };
 		}
 
-		public static object[] UnpackageFromInitialTransfer(NetIncomingMessage message) {
-			return new object[] { message.ReadInt32() };
-		}
+
 	}
 
 	class InvalidEntityPropertyException : Exception {

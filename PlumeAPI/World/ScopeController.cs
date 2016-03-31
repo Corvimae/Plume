@@ -1,5 +1,7 @@
 ﻿using PlumeAPI.Entities;
 using PlumeAPI.Modularization;
+using PlumeAPI.Networking;
+using PlumeAPI.Networking.Builtin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,23 +39,30 @@ namespace PlumeAPI.World {
 
 		public static int RegisterEntity(string scope, BaseEntity entity) {
 			if(ScopeRegistry.ContainsKey(scope)) {
-				entity.Id = GetNextHighestId();
 
 				EntityScope entityScope = ScopeRegistry[scope];
-				entityScope.EntitiesInScope.Add(entity.Id, entity);
-				entity.Scope = entityScope;
-
-				Entities.Add(entity.Id, entity);
-				return entity.Id;
+				return RegisterEntity(entityScope, entity);
 			}
 			throw new InvalidScopeException(scope);
+		}
+
+		public static int RegisterEntity(EntityScope entityScope, BaseEntity entity) {
+			entity.Id = GetNextHighestId();
+			entityScope.EntitiesInScope.Add(entity.Id, entity);
+			entity.Scope = entityScope;
+
+			Entities.Add(entity.Id, entity);
+
+			if(ModuleController.Environment == PlumeEnvironment.Server) {
+				entityScope.Broadcast(new SyncEntityToClientMessageHandler(entity));
+			}
+			return entity.Id;
 		}
 
 		public static BaseEntity UpdateOrCreateWithId(int id, EntityScope scope, string referencer, params object[] arguments) {
 			BaseEntity entity;
 			if(Entities.ContainsKey(id)) {
 				entity = Entities[id];
-				entity.UpdateFromMessage(arguments);
 			} else {
 				entity = ModuleController.CreateEntityByReferencer(referencer, arguments);
 				entity.Id = id;
@@ -64,7 +73,6 @@ namespace PlumeAPI.World {
 		public static void UpdateFromId(int id, params object[] arguments) {
 			if(Entities.ContainsKey(id)) {
 				BaseEntity entity = Entities[id];
-				entity.UpdateFromMessage(arguments);
 			} else {
 				Console.WriteLine("Entity with id " + id + " missing.");
 			}
