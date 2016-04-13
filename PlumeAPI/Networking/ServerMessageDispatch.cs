@@ -13,26 +13,24 @@ namespace PlumeAPI.Networking {
 
 		public static NetServer Server;
 		public static List<Client> Clients = new List<Client>();
-
+		static Queue<PendingOutgoingMessage> PendingMessages = new Queue<PendingOutgoingMessage>();
+	
 		static long Tick;
 
 		public static void Send(MessageHandler handler, Client recipient) {
-			NetOutgoingMessage message = handler.CreateMessage(Server).GetMessage();
-			Server.SendMessage(message, recipient.Connection, NetDeliveryMethod.ReliableOrdered, 0);
+			PendingMessages.Enqueue(new PendingOutgoingMessage(handler.CreateMessage(Server), recipient.Connection));
 		}
 
 		public static void Broadcast(MessageHandler handler) {
 			if(Server.Connections.Count() > 0) {
-				NetOutgoingMessage message = handler.CreateMessage(Server).GetMessage();
-				Server.SendMessage(message, Server.Connections, NetDeliveryMethod.ReliableOrdered, 0);
+				PendingMessages.Enqueue(new PendingOutgoingMessage(handler.CreateMessage(Server), Server.Connections));
 			}
 		}
 
 		public static void SendToScope(MessageHandler handler, EntityScope scope) {
-			NetOutgoingMessage message = handler.CreateMessage(Server).GetMessage();
 			List<NetConnection> connections = GetClientsInScope(scope).Select(x => x.Connection).ToList<NetConnection>();
 			if(connections.Count() > 0) {
-				Server.SendMessage(message, connections, NetDeliveryMethod.ReliableOrdered, 0);
+				PendingMessages.Enqueue(new PendingOutgoingMessage(handler.CreateMessage(Server), connections));
 			}
 		}
 
@@ -41,6 +39,15 @@ namespace PlumeAPI.Networking {
 				MessageController.MessageTypes[type].Handle(message);
 			} else {
 				throw new InvalidMessageTypeException();
+			}
+		}
+
+		public static void Process() {
+			while(true) {
+				while(PendingMessages.Count > 0) {
+					PendingOutgoingMessage message = PendingMessages.Dequeue();
+					Server.SendMessage(message.Message.GetMessage(), message.Recipients, NetDeliveryMethod.ReliableOrdered, 0);
+				}
 			}
 		}
 
@@ -65,4 +72,5 @@ namespace PlumeAPI.Networking {
 			return Clients.Where(x => x.Scope == scope).ToList<Client>();
 		}
 	}
+
 }

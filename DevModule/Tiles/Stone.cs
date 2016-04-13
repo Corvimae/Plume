@@ -4,7 +4,7 @@ using PlumeRPG.Entities;
 using PlumeAPI.Networking;
 using PlumeAPI.Networking.Builtin;
 using System;
-using PlumeAPI.Attributes;
+using PlumeAPI.Entities;
 
 namespace DevModule.Tiles {
 	public class Stone : MapTile {
@@ -12,7 +12,6 @@ namespace DevModule.Tiles {
 		public Stone() : base() {
 		}
 
-		[Syncable]
 		public int Bazoople { get; set; }
 
 		public Stone(int x, int y) : base(x, y) {
@@ -20,6 +19,7 @@ namespace DevModule.Tiles {
 			SetEntityProperty("update", true);
 			Bazoople = 0;
 			random = new Random(("" + Position.X + Position.Y).GetHashCode());
+			RegisterProperty(EntityPropertyType.Syncable, "Bazoople", () => { return Bazoople; }, (value) => { Bazoople = (int)value; });
 		}
 
 		public override void UpdateServer() {

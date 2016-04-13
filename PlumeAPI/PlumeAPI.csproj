@@ -53,8 +53,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\InterpolateAttribute.cs" />
-    <Compile Include="Attributes\SyncableAttribute.cs" />
     <Compile Include="Commands.Builtin\BuiltinCommandRegistrator.cs" />
     <Compile Include="Commands.Builtin\DebugCommands.cs" />
     <Compile Include="Commands.Builtin\NetworkCommands.cs" />
@@ -68,6 +66,7 @@
     <Compile Include="Entities\EntityController.cs" />
     <Compile Include="Entities\EntityInterpolation.cs" />
     <Compile Include="Entities\ClientEntitySnapshot.cs" />
+    <Compile Include="Entities\EntityPropertyData.cs" />
     <Compile Include="Events\EventController.cs" />
     <Compile Include="Events\EventData.cs" />
     <Compile Include="Events\EventDefinition.cs" />
@@ -79,6 +78,7 @@
     <Compile Include="Modularization\ModuleDefinition.cs" />
     <Compile Include="Modularization\PlumeModule.cs" />
     <Compile Include="Networking.Builtin\ForwardCommandToServerMessageHandler.cs" />
+    <Compile Include="Networking.Builtin\SendClientEntityStateMessageHandler.cs" />
     <Compile Include="Networking.Builtin\SendModuleRequirementsMessageHandler.cs" />
     <Compile Include="Networking.Builtin\SendScopeSnapshotMessageHandler.cs" />
     <Compile Include="Networking.Builtin\SyncEntityIdsMessageHandler.cs" />
@@ -94,7 +94,10 @@
     <Compile Include="Networking\MessageHandler.cs" />
     <Compile Include="Networking\MessageController.cs" />
     <Compile Include="Networking\ServerMessageDispatch.cs" />
-    <Compile Include="Utilities\Configuration.cs" />
+    <Compile Include="Utilities\DataStore.cs" />
+    <Compile Include="Utilities\MemberType.cs" />
+    <Compile Include="Utilities\ServerConfiguration.cs" />
+    <Compile Include="Utilities\ClientConfiguration.cs" />
     <Compile Include="Utilities\DependencyGraph.cs" />
     <Compile Include="Utilities\GameServices.cs" />
     <Compile Include="Utilities\TypeServices.cs" />

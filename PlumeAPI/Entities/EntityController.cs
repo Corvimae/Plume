@@ -12,9 +12,12 @@ namespace PlumeAPI.Entities {
 		public static SortedSet<ClientEntitySnapshot> Snapshots = new SortedSet<ClientEntitySnapshot>();
 		public static ClientEntitySnapshot SnapshotBeforeMoment = null;
 		public static ClientEntitySnapshot SnapshotAfterMoment = null;
-		public static DateTime InterpolationPoint = DateTime.UtcNow;
+		public static long InterpolationPoint = GameServices.TimeElapsed();
 
 		static int NextHighestId = 0;
+
+		public static long Tick = 0;
+		public static long LastProcessedTick = 0;
 
 		public static int GetNextHighestId() {
 			return NextHighestId++;
@@ -30,15 +33,16 @@ namespace PlumeAPI.Entities {
 
 		public static void SetSnapshotsForMoment() {
 			if(Snapshots.Count() >= 2) {
-				InterpolationPoint = DateTime.UtcNow.AddMilliseconds(-1 * Configuration.InterpolationDelay);
+				InterpolationPoint = GameServices.TimeElapsed() - ClientConfiguration.InterpolationDelay;
 				ClientEntitySnapshot snapshot = Snapshots.Last();
 				int i = Snapshots.Count() - 2;
-				while(snapshot.Received > InterpolationPoint && i >= 0) {
+				while(snapshot.Received >= InterpolationPoint && i >= 0) {
 					snapshot = Snapshots.ElementAt(i--);
 				}
-				if(i > 0) {
-					SnapshotBeforeMoment = Snapshots.ElementAt(i);
-					SnapshotAfterMoment = Snapshots.ElementAt(i + 1);
+				if(i > 0 && i + 2 < Snapshots.Count()) {
+					SnapshotBeforeMoment = snapshot;
+					SnapshotAfterMoment = Snapshots.ElementAt(i + 2);
+					Console.WriteLine((InterpolationPoint - SnapshotBeforeMoment.Received) + "," + (SnapshotAfterMoment.Received - SnapshotBeforeMoment.Received));
 					Snapshots.RemoveWhere(x => x.Received < SnapshotBeforeMoment.Received);
 				}
 			}

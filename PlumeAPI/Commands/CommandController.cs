@@ -13,7 +13,7 @@ namespace PlumeAPI.Commands {
 		static Dictionary<string, PlumeCommand> CommandRegistry = new Dictionary<string, PlumeCommand>();
 
 		public static Action<string[]> ClientNoop = (x) => { };
-		public static Action<string[]> ForwardCommandToServer = (x) => ClientMessageDispatch.Send(new ForwardCommandToServerMessageHandler(x));
+		public static Action<string[]> Forward = (x) => ClientMessageDispatch.Send(new ForwardCommandToServerMessageHandler(x));
 
 		public static Action<Client, string[]> ServerNoop = (x, y) => { };
 
@@ -27,11 +27,8 @@ namespace PlumeAPI.Commands {
 		public static void Handle(string name, string[] arguments, Client source) {
 			if(CommandRegistry.ContainsKey(name)) {
 				if(ModuleController.Environment == PlumeEnvironment.Client) {
-					if(CommandRegistry[name].ClientMethod == ForwardCommandToServer) {
-						string[] fullArguments = new string[arguments.Length + 1];
-						fullArguments[0] = name;
-						Array.Copy(arguments, 0, fullArguments, 1, arguments.Length);
-						CommandRegistry[name].ClientMethod.Invoke(fullArguments);
+					if(CommandRegistry[name].ClientMethod == Forward) {
+						CommandRegistry[name].ClientMethod.Invoke(CreateForwardActionArguments(name, arguments));
 					} else {
 						CommandRegistry[name].ClientMethod.Invoke(arguments);
 					}
@@ -46,6 +43,17 @@ namespace PlumeAPI.Commands {
 		public static void ParseCommand(string command) {
 			string[] parts = command.Split(' ');
 			Handle(parts[0], parts.Skip(1).ToArray(), null);
+		}
+
+		public static string[] CreateForwardActionArguments(string name, string[] arguments) {
+			string[] fullArguments = new string[arguments.Length + 1];
+			fullArguments[0] = name;
+			Array.Copy(arguments, 0, fullArguments, 1, arguments.Length);
+			return fullArguments;
+		}
+
+		public static void ForwardCommandToServer(string name, string[] arguments) {
+			ClientMessageDispatch.Send(new ForwardCommandToServerMessageHandler(CreateForwardActionArguments(name, arguments)));
 		}
 
 		public static void ArgumentError(int index, string argument, string type) {

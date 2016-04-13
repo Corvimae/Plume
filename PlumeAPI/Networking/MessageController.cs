@@ -19,9 +19,10 @@ namespace PlumeAPI.Networking {
 			MessageController.RegisterMessageType(new SyncEntityIdsMessageHandler());
 			MessageController.RegisterMessageType(new SendScopeMessageHandler(null));
 			MessageController.RegisterMessageType(new RequestConnectionMessageHandler(null));
-			MessageController.RegisterMessageType(new SendScopeSnapshotMessageHandler(null));
+			MessageController.RegisterMessageType(new SendScopeSnapshotMessageHandler(null, null));
 			MessageController.RegisterMessageType(new ForwardCommandToServerMessageHandler(null));
 			MessageController.RegisterMessageType(new SyncEntityToClientMessageHandler(null));
+			MessageController.RegisterMessageType(new SendClientEntityStateMessageHandler(null));
 		}
 		public static void RegisterMessageType(MessageHandler handlerInstance) {
 			string type = handlerInstance.GetType().FullName;
@@ -55,6 +56,19 @@ namespace PlumeAPI.Networking {
 		}
 	}
 
+	struct PendingOutgoingMessage {
+		public OutgoingMessage Message;
+		public List<NetConnection> Recipients;
+		public PendingOutgoingMessage(OutgoingMessage message, List<NetConnection> recipients) {
+			Message = message;
+			Recipients = recipients;
+		}
+		public PendingOutgoingMessage(OutgoingMessage message, NetConnection recipient) {
+			Message = message;
+			Recipients = new List<NetConnection>();
+			Recipients.Add(recipient);
+		}
+	} 
 	public class InvalidMessageTypeException : Exception { };
 
 	public class MessageHandlerUnnamedException : Exception {
