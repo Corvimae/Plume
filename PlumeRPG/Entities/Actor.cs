@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PlumeAPI.Attributes;
 using PlumeAPI.Entities;
 using PlumeAPI.World;
 using System;
@@ -11,20 +10,21 @@ using System.Threading.Tasks;
 namespace PlumeRPG.Entities {
 	public class Actor : BaseEntity {
 
-		[Syncable, Interpolate]
 		public override Vector2 Position { get; set; }
 
-		[Syncable]
-		public ActorMotion MotionState { get; set; }
+		public virtual ActorMotion MotionState { get; set; }
 
 		public Actor() : base() { }
 
 		public Actor(int x, int y) : base() {
 			Position = new Vector2(x, y);
+			RegisterProperty(EntityPropertyType.Syncable | EntityPropertyType.Interpolatable, "Position", () => { return Position; }, (value) => { Position = (Vector2) value; });
+			RegisterProperty(EntityPropertyType.Syncable, "MotionState", () => { return MotionState; }, (value) => { MotionState = (ActorMotion)value; });
+
 		}
 
-		public bool IsMovingInDirection(ActorMotion direction) {
-			return (MotionState & direction) == direction;
+		public bool IsMovingInDirection(ActorMotion state, ActorMotion direction) {
+			return (state & direction) == direction;
 		}
 
 		static Actor() {

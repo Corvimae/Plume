@@ -31,6 +31,8 @@ namespace PlumeClient {
 		private KeyboardState previousKeyboardState = Keyboard.GetState();
 		private MouseState previousMouseState = Mouse.GetState();
 
+		private double UpdateTime = 0;
+
 		public Core() {
 			graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
@@ -54,6 +56,8 @@ namespace PlumeClient {
 			AppDomain.CurrentDomain.AssemblyResolve += ResolveDuplicateAssembly;
 
 			this.IsMouseVisible = true;
+			this.IsFixedTimeStep = true;
+			this.TargetElapsedTime = TimeSpan.FromSeconds(1.0f / ClientConfiguration.TickRate);
 
 			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
 			GameServices.AddService<Core>(this);
@@ -66,6 +70,8 @@ namespace PlumeClient {
 			drawQueue = new DrawQueue(ActiveScope);
 			Camera.Initialize();
 			Camera.UseEasing = true;
+
+			GameServices.StartTimer();
 
 			ClientMessageDispatch.Connect("localhost", 25656);
 		}
@@ -85,9 +91,12 @@ namespace PlumeClient {
 		}
 
 		protected override void Update(GameTime gameTime) {
+			long startTime = GameServices.TimeElapsed();
 			if(GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
 				Exit();
 			}
+
+			EntityController.Tick += 1;
 
 			EntityController.SetSnapshotsForMoment();
 
@@ -140,6 +149,10 @@ namespace PlumeClient {
 			}
 
 			if(IsKeyPressed(keyboardState, Keys.E)) {
+				CommandController.ParseCommand("lerp_delay 500");
+			}
+
+			if(IsKeyPressed(keyboardState, Keys.R)) {
 				CommandController.ParseCommand("lerp_delay 100");
 			}
 
@@ -177,6 +190,7 @@ namespace PlumeClient {
 			}
 
 			base.Update(gameTime);
+			UpdateTime = GameServices.TimeElapsed() - startTime;
 		}
 
 		private bool IsKeyPressed(KeyboardState keyboardState, Keys key) {
@@ -187,7 +201,7 @@ namespace PlumeClient {
 			GraphicsDevice.Clear(Color.CornflowerBlue);
 			Canvas.LoadCameraBoundsForFrame();
 
-			DateTime start = DateTime.Now;
+			long start = GameServices.TimeElapsed();
 			Matrix transformationMatrix = Camera.GetTransformationMatrix();
 			Matrix inverseMatrix = Matrix.Invert(transformationMatrix);
 			spriteBatch.Begin(transformMatrix: transformationMatrix);
@@ -206,7 +220,8 @@ namespace PlumeClient {
 			//UI Layer
 			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
 			spriteBatch.DrawString(FontRepository.System,
-				"FPS: " + Math.Round(frameRate) + " | Draw: " + Math.Round((DateTime.Now - start).TotalMilliseconds) + "ms | Ping: " + Math.Round(ClientMessageDispatch.Ping*1000) + "ms",
+				"FPS: " + Math.Round(frameRate) + " | Draw: " + (GameServices.TimeElapsed() - start) + "ms | Update: " + Math.Round(UpdateTime) + 
+				"ms | Ping: " + Math.Round(ClientMessageDispatch.Ping*1000) + "ms",
 				Camera.ConvertViewportToCamera(new Vector2(5, 5)), Color.White);
 			spriteBatch.End();
 			base.Draw(gameTime);

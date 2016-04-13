@@ -22,7 +22,6 @@ namespace PlumeAPI.Networking.Builtin {
 		}
 
 		public override void Handle(IncomingMessage message) {
-			base.Handle(message);
 			int id = message.ReadInt32();
 			string username = message.ReadString();
 			Console.WriteLine("Connection requested from " + username + " (" + message.GetMessage().SenderConnection.RemoteEndPoint.Address + ")");

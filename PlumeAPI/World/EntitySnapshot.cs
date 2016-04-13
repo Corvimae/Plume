@@ -1,6 +1,5 @@
 ﻿using Lidgren.Network;
 using Microsoft.Xna.Framework;
-using PlumeAPI.Attributes;
 using PlumeAPI.Entities;
 using PlumeAPI.Networking;
 using System;
@@ -13,9 +12,7 @@ using System.Threading.Tasks;
 namespace PlumeAPI.World {
 	public class EntitySnapshot {
 		public int Id;
-		public long Tick;
-
-		Dictionary<string, SyncablePropertyValue> ChangedProperties = new Dictionary<string, SyncablePropertyValue>();
+		HashSet<SyncablePropertyValue> ChangedProperties = new HashSet<SyncablePropertyValue>();
 		Dictionary<string, object> AllProperties = new Dictionary<string, object>();
 
 		static Dictionary<Type, Action<object, OutgoingMessage>> MessageWriters = new Dictionary<Type, Action<object, OutgoingMessage>>();
@@ -23,22 +20,21 @@ namespace PlumeAPI.World {
 
 		public EntitySnapshot(BaseEntity entity) {
 			Id = entity.Id;
-			Tick = ServerMessageDispatch.GetTick();
-
 			EntitySnapshot previousEntitySnapshot = null;
 			ScopeSnapshot previousScopeSnapshot = entity.Scope.PreviousSnapshot;
 			if(previousScopeSnapshot != null) {
 				previousEntitySnapshot = previousScopeSnapshot.GetSnapshotForEntity(Id);
 			}
 
-			IEnumerable<PropertyInfo> properties = entity.GetSyncableProperties();
+			EntityPropertyData[] properties = entity.GetSyncableProperties();
 			int i = 0;
-			foreach(PropertyInfo property in properties) {
-				object value = property.GetValue(entity);
-				AllProperties.Add(property.Name, value);
-				if(previousEntitySnapshot == null || !value.Equals(previousEntitySnapshot.AllProperties[property.Name])) {
-					ChangedProperties.Add(property.Name, new SyncablePropertyValue(i, value));
+			foreach(EntityPropertyData property in properties) {
+				object value = property.Get();
+				object oldValue = null;
+				if(previousEntitySnapshot != null) {
+					previousEntitySnapshot.AllProperties.TryGetValue(property.Info.Name, out oldValue);
 				}
+				if(!value.Equals(oldValue)) ChangedProperties.Add(new SyncablePropertyValue(i, value));
 				i++;
 			}
 		}
@@ -47,15 +43,19 @@ namespace PlumeAPI.World {
 			if(ChangedProperties.Count() > 0) {
 				message.Write(Id);
 				message.Write((byte)ChangedProperties.Count());
-				foreach(KeyValuePair<string, SyncablePropertyValue> property in ChangedProperties) {
+				foreach(SyncablePropertyValue property in ChangedProperties) {
 					try {
-						message.Write((byte)property.Value.Position);
-						MessageWriters[property.Value.Value.GetType()].Invoke(property.Value.Value, message);
+						message.Write((byte)property.Position);
+						MessageWriters[property.Value.GetType()].Invoke(property.Value, message);
 					} catch(KeyNotFoundException) {
-						Console.WriteLine("Unable to parse syncable property " + property.Key + ": no valid message writer for type " + property.Value.Value.GetType().FullName + ".");
+						Console.WriteLine("Unable to parse syncable property: no valid message writer for type " + property.Value.GetType().FullName + ".");
 					}
 				}
 			}
+		}
+
+		public static Action<object, OutgoingMessage> GetMessageWriter(Type type) {
+			return MessageWriters[type];
 		}
 
 		public static void RegisterTypeHandler(Type type, Func<IncomingMessage, object> incoming, Action<object, OutgoingMessage> outgoing) {

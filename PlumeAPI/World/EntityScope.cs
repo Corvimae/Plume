@@ -38,14 +38,16 @@ namespace PlumeAPI.World {
 
 
 		public void Update() {
-			foreach(BaseEntity entity in EntitiesInScope.Values) {
+			foreach(BaseEntity entity in EntitiesInScope.Values.ToArray()) {
 				if(entity.HasPropertyEnabled("update")) entity.Update();
 			}
 
 			//Create a new snapshot if anyone's here.
 			if(GetClients().Count() > 0) {
 				ScopeSnapshot snapshot = new ScopeSnapshot(this);
-				ServerMessageDispatch.SendToScope(new SendScopeSnapshotMessageHandler(snapshot), this);
+				foreach(Client client in GetClients()) {
+					ServerMessageDispatch.Send(new SendScopeSnapshotMessageHandler(snapshot, client), client);
+				}
 				PreviousSnapshot = snapshot;
 			}
 			//Set the previous snapshot to the new one

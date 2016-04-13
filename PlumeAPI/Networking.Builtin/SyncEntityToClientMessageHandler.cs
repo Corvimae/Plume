@@ -19,7 +19,6 @@ namespace PlumeAPI.Networking.Builtin {
 		public override OutgoingMessage PackageMessage(OutgoingMessage message) {
 			message.Write(Entity.Scope.Name);
 			Entity.PackageForInitialTransfer(message);
-			Console.WriteLine("Sending entity " + Entity.GetType().FullName);
 			return message;
 		}
 

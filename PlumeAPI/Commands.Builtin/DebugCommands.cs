@@ -10,7 +10,7 @@ namespace PlumeAPI.Commands.Builtin {
 			CommandController.RegisterCommand(
 				"plume_test",
 				"Test",
-				CommandController.ForwardCommandToServer,
+				CommandController.Forward,
 				(source, arguments) => {
 					Console.WriteLine("Test from " + source.Name + "!");
 				}

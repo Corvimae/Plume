@@ -22,6 +22,7 @@ namespace PlumeAPI.Networking.Builtin {
 				MessageController.MessageTypes.ChangeKey(k, -1 * k);
 			});
 			while(message.Position < message.LengthBits) {
+
 				try {
 					string name = message.ReadString();
 					int id = message.ReadInt32();

@@ -9,23 +9,26 @@ using System.Threading.Tasks;
 
 namespace PlumeAPI.World {
 	public class ScopeSnapshot {
-		List<EntitySnapshot> EntitySnapshots = new List<EntitySnapshot>();
+		Dictionary<int, EntitySnapshot> EntitySnapshots = new Dictionary<int, EntitySnapshot>();
 		public long Tick;
 
 		public ScopeSnapshot(EntityScope scope) {
 			Tick = ServerMessageDispatch.GetTick();
-
 			foreach(BaseEntity entity in scope.GetEntities()) {
-				EntitySnapshots.Add(new EntitySnapshot(entity));
+				if(entity.GetSyncableProperties().Length > 0) {
+					EntitySnapshots.Add(entity.Id, new EntitySnapshot(entity));
+				}
 			}
 		}
 
 		public EntitySnapshot GetSnapshotForEntity(int id) {
-			return EntitySnapshots.FirstOrDefault(x => x.Id == id);
+			EntitySnapshot value;
+			EntitySnapshots.TryGetValue(id, out value);
+			return value;
 		}
 		
 		public void PackageForMessage(OutgoingMessage message) {
-			foreach(EntitySnapshot entitySnapshot in EntitySnapshots) {
+			foreach(EntitySnapshot entitySnapshot in EntitySnapshots.Values) {
 				entitySnapshot.AddToMessage(message);
 			}
 		}

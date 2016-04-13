@@ -7,17 +7,18 @@ using Lidgren.Network;
 using PlumeAPI.World;
 using PlumeAPI.Entities;
 using System.Reflection;
-using PlumeAPI.Attributes;
+using PlumeAPI.Utilities;
 
 namespace PlumeAPI.Networking.Builtin {
 	public class SendScopeSnapshotMessageHandler : MessageHandler {
 		ScopeSnapshot Snapshot;
-		static DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-		public SendScopeSnapshotMessageHandler(ScopeSnapshot snapshot) {
+		Client Recipient;
+		public SendScopeSnapshotMessageHandler(ScopeSnapshot snapshot, Client recipient) {
 			Snapshot = snapshot;
+			Recipient = recipient;
 		}
 		public override OutgoingMessage PackageMessage(OutgoingMessage message) {
-			message.Write(Snapshot.Tick);
+			message.Write(Recipient.LastProcessedTick);
 			Snapshot.PackageForMessage(message);
 			return message;
 		}
@@ -26,7 +27,7 @@ namespace PlumeAPI.Networking.Builtin {
 			Dictionary<int, object> PropertyValues = new Dictionary<int, object>();
 			//Console.WriteLine("Snapshot update of size " + message.LengthBytes);
 			long ticks = message.ReadInt64();
-			DateTime received = DateTime.UtcNow;
+			long received = GameServices.TimeElapsed();
 
 			ClientEntitySnapshot snapshot = new ClientEntitySnapshot(ticks, received);
 
@@ -38,14 +39,15 @@ namespace PlumeAPI.Networking.Builtin {
 				//If the entity is null, it simply means the message to register it client-side hasn't arrived yet.
 				//This screws up the rest of the snapshot, so we abort early
 				if(entity != null) {
-					PropertyInfo[] properties = entity.GetSyncableProperties().ToArray();
+					EntityPropertyData[] properties = entity.GetSyncableProperties();
+					//Set the last updated tick
 					short count = message.ReadByte();
 					for(int i = 0; i < count; i++) {
 						byte position = message.ReadByte();
 						//Find the property in that position
-						PropertyInfo property = properties[position];
-						object value = EntitySnapshot.ReadType(property.PropertyType, message);
-						snapshot.SetProperty(id, property, value);
+						EntityPropertyData property = properties[position];
+						object value = EntitySnapshot.ReadType(property.Info.PropertyType, message);
+						snapshot.SetProperty(id, property.Info, value);
 					}
 				} else {
 					return;

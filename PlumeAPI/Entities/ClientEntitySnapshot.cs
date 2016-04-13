@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace PlumeAPI.Entities {
 	public class ClientEntitySnapshot : IComparable<ClientEntitySnapshot> {
-		public long Tick;
-		public DateTime Received;
+		public long Tick { get; set; }
+		public long Received { get; set; }
+
 		public Dictionary<int, Dictionary<PropertyInfo, object>> Properties = new Dictionary<int, Dictionary<PropertyInfo, object>>();
-		public ClientEntitySnapshot(long tick, DateTime received) {
+		public ClientEntitySnapshot(long tick, long received) {
 			Tick = tick;
 			Received = received;
 		}
@@ -23,7 +24,7 @@ namespace PlumeAPI.Entities {
 		}
 
 		public int CompareTo(ClientEntitySnapshot obj) {
-			return (int)(Received - obj.Received).TotalMilliseconds;
+			return (int) (Received - obj.Received);
 		}
 	}
 }

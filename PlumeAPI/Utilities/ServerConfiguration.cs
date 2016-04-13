@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlumeServer {
-	class Configuration {
-		public static int TickRate = 15;
+namespace PlumeAPI.Utilities {
+	public static class ServerConfiguration {
+		public static int TickRate = 60;
 	}
 }

@@ -16,7 +16,7 @@ namespace PlumeAPI.Networking {
 		public NetConnection Connection;
 		public EntityScope Scope;
 		Dictionary<string, object> _clientStorage = new Dictionary<string, object>();
-
+		public long LastProcessedTick { get; set; }
 
 		public Client(string name, NetConnection connection) { 
 			this.Name = name;
@@ -45,7 +45,13 @@ namespace PlumeAPI.Networking {
 		}
 
 		public object this[string key] {
-			get { return _clientStorage[key]; }
+			get {
+				if(_clientStorage.ContainsKey(key)) {
+					return _clientStorage[key];
+				} else {
+					return null;
+				}
+			}
 			set {
 				if(!_clientStorage.ContainsKey(key)) {
 					_clientStorage.Add(key, value);
