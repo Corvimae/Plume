@@ -1,5 +1,7 @@
 ﻿using Lidgren.Network;
+using Microsoft.Xna.Framework;
 using PlumeAPI.Entities;
+using PlumeAPI.Events;
 using PlumeAPI.Modularization;
 using PlumeAPI.Networking;
 using PlumeAPI.Networking.Builtin;
@@ -15,6 +17,8 @@ namespace PlumeAPI.World {
 		public string Name;
 		public Dictionary<int, BaseEntity> EntitiesInScope = new Dictionary<int, BaseEntity>();
 		public ScopeSnapshot PreviousSnapshot { get; set; }
+
+		public Rectangle Boundry = new Rectangle(-999999999, -999999999, 999999999*2, 999999999*2);
 		public EntityScope(string name) {
 			this.Name = name;
 			ScopeController.RegisterScope(name, this);
@@ -36,12 +40,12 @@ namespace PlumeAPI.World {
 			ServerMessageDispatch.SendToScope(handler, this);
 		}
 
+		public Rectangle GetBoundry() {
+			return Boundry;
+		}
 
 		public void Update() {
-			foreach(BaseEntity entity in EntitiesInScope.Values.ToArray()) {
-				if(entity.HasPropertyEnabled("update")) entity.Update();
-			}
-
+			EventController.Fire("update", this);
 			//Create a new snapshot if anyone's here.
 			if(GetClients().Count() > 0) {
 				ScopeSnapshot snapshot = new ScopeSnapshot(this);
@@ -55,17 +59,20 @@ namespace PlumeAPI.World {
 
 		public void PackageForMessage(OutgoingMessage message) {
 			message.Write(Name);
+			message.Write(Boundry.X);
+			message.Write(Boundry.Y);
+			message.Write(Boundry.Width);
+			message.Write(Boundry.Height);
+			Console.WriteLine(GetEntities().Count);
 			foreach(BaseEntity entity in GetEntities()) {
 				entity.PackageForInitialTransfer(message);
 			}
 		}
 		public void UnpackageFromMessage(ref IncomingMessage message) {
+			Boundry = new Rectangle(message.ReadInt32(), message.ReadInt32(), message.ReadInt32(), message.ReadInt32());
 			while(message.Position < message.LengthBits) {
 				int typeId = message.ReadInt32();
-				string referencer = EntityController.EntityIds[typeId];
-				Type entityType = ModuleController.GetEntityTypeByReferencer(referencer);
-				object[] entityArguments = TypeServices.InvokeStaticTypeMethod("UnpackageFromInitialTransfer", entityType, message);
-				BaseEntity entity = ScopeController.UpdateOrCreateWithId((int) entityArguments[0], this, referencer, entityArguments.Skip(1).ToArray());
+				BaseEntity newEntity = EntityController.CreateNewEntityFromServerData(typeId, message.ReadInt32(), this, message);
 			}
 		}
 	}

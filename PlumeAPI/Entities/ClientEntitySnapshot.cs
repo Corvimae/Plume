@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PlumeAPI.Entities.Components;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,17 +11,21 @@ namespace PlumeAPI.Entities {
 		public long Tick { get; set; }
 		public long Received { get; set; }
 
-		public Dictionary<int, Dictionary<PropertyInfo, object>> Properties = new Dictionary<int, Dictionary<PropertyInfo, object>>();
+		public Dictionary<int, Dictionary<NetworkedPropertyReferencer, object>> Properties = new Dictionary<int, Dictionary<NetworkedPropertyReferencer, object>>();
 		public ClientEntitySnapshot(long tick, long received) {
 			Tick = tick;
 			Received = received;
 		}
 
-		public void SetProperty(int id, PropertyInfo property, object value) {
+		public void SetProperty(int id, NetworkedPropertyReferencer property, object value) {
 			if(!Properties.ContainsKey(id)) {
-				Properties.Add(id, new Dictionary<PropertyInfo, object>());
+				Properties.Add(id, new Dictionary<NetworkedPropertyReferencer, object>());
 			}
-			Properties[id].Add(property, value);
+			if(Properties[id].ContainsKey(property)) {
+				Properties[id][property] = value;
+			} else {
+				Properties[id].Add(property, value);
+			}
 		}
 
 		public int CompareTo(ClientEntitySnapshot obj) {

@@ -23,12 +23,12 @@ namespace PlumeAPI.Networking {
 
 		public static void Broadcast(MessageHandler handler) {
 			if(Server.Connections.Count() > 0) {
-				PendingMessages.Enqueue(new PendingOutgoingMessage(handler.CreateMessage(Server), Server.Connections));
+				PendingMessages.Enqueue(new PendingOutgoingMessage(handler.CreateMessage(Server), Server.Connections.ToArray()));
 			}
 		}
 
 		public static void SendToScope(MessageHandler handler, EntityScope scope) {
-			List<NetConnection> connections = GetClientsInScope(scope).Select(x => x.Connection).ToList<NetConnection>();
+			NetConnection[] connections = GetClientsInScope(scope).Select(x => x.Connection).ToArray<NetConnection>();
 			if(connections.Count() > 0) {
 				PendingMessages.Enqueue(new PendingOutgoingMessage(handler.CreateMessage(Server), connections));
 			}
@@ -46,7 +46,9 @@ namespace PlumeAPI.Networking {
 			while(true) {
 				while(PendingMessages.Count > 0) {
 					PendingOutgoingMessage message = PendingMessages.Dequeue();
-					Server.SendMessage(message.Message.GetMessage(), message.Recipients, NetDeliveryMethod.ReliableOrdered, 0);
+					if(message.Message != null) {
+						Server.SendMessage(message.Message.GetMessage(), message.Recipients, NetDeliveryMethod.ReliableOrdered, 0);
+					}
 				}
 			}
 		}

@@ -58,15 +58,14 @@ namespace PlumeAPI.Networking {
 
 	struct PendingOutgoingMessage {
 		public OutgoingMessage Message;
-		public List<NetConnection> Recipients;
-		public PendingOutgoingMessage(OutgoingMessage message, List<NetConnection> recipients) {
+		public NetConnection[] Recipients;
+		public PendingOutgoingMessage(OutgoingMessage message, NetConnection[] recipients) {
 			Message = message;
 			Recipients = recipients;
 		}
 		public PendingOutgoingMessage(OutgoingMessage message, NetConnection recipient) {
 			Message = message;
-			Recipients = new List<NetConnection>();
-			Recipients.Add(recipient);
+			Recipients = new NetConnection[] { recipient };
 		}
 	} 
 	public class InvalidMessageTypeException : Exception { };

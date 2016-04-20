@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using PlumeAPI.Entities;
+using PlumeAPI.Entities.Components;
 
 namespace PlumeAPI.World {
 	public static class Camera {
@@ -20,6 +22,10 @@ namespace PlumeAPI.World {
 		private static float MaxSpeed = 7.5f;
 
 		public static bool UseEasing = true;
+
+		public static BaseEntity EntityToFollow = null;
+		public static Rectangle Boundry = new Rectangle(0, 0, 99999, 99999);
+		public static bool FreeCamera = false;
 
 	public static void Initialize() {
 			X = 0;
@@ -81,7 +87,36 @@ namespace PlumeAPI.World {
 			return Vector2.Transform(input, GetTransformationMatrix());
 		}
 
+		public static void AttachToEntity(BaseEntity entity) {
+			EntityToFollow = entity;
+		}
+
+		public static void SetBoundry(Rectangle boundry) {
+			Boundry = boundry;
+		}
+
+		public static void ToggleFreeCamera(bool toggle) {
+			FreeCamera = toggle;
+		}
+
 		public static void Update() {
+			Viewport viewport = GameServices.GetService<GraphicsDevice>().Viewport;
+
+			if(!FreeCamera) {
+				if(EntityToFollow != null) {
+					Vector2 position = EntityToFollow.GetComponent<PositionalComponent>().Position;
+					XGoal = position.X - viewport.Width / 2;
+					YGoal = position.Y - viewport.Height / 2;
+				}
+
+				if(Boundry != null) {
+					if(XGoal < Boundry.X) XGoal = Boundry.X;
+					if(YGoal < Boundry.Y) YGoal = Boundry.Y;
+					if(XGoal > Boundry.X + Boundry.Width - viewport.Width) XGoal = Boundry.X + Boundry.Width - viewport.Width;
+					if(YGoal > Boundry.Y + Boundry.Height - viewport.Height) YGoal = Boundry.Y + Boundry.Height - viewport.Height;
+				}
+			}
+
 			if(UseEasing) {
 				//Trend towards our position
 				float dX = (XGoal - X) / (1 / Speed);

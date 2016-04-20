@@ -1,5 +1,6 @@
 ﻿using Lidgren.Network;
 using PlumeAPI.Entities;
+using PlumeAPI.Entities.Components;
 using PlumeAPI.Networking;
 using System;
 using System.Collections.Generic;
@@ -15,8 +16,11 @@ namespace PlumeAPI.World {
 		public ScopeSnapshot(EntityScope scope) {
 			Tick = ServerMessageDispatch.GetTick();
 			foreach(BaseEntity entity in scope.GetEntities()) {
-				if(entity.GetSyncableProperties().Length > 0) {
-					EntitySnapshots.Add(entity.Id, new EntitySnapshot(entity));
+				NetworkedComponent component = null;
+				if(entity.TryGetDerivativeComponent(ref component)) {
+					if(component.GetSyncableProperties().Length > 0) {
+						EntitySnapshots.Add(entity.Id, new EntitySnapshot(entity));
+					}
 				}
 			}
 		}

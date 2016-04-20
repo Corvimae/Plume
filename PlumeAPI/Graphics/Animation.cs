@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using PlumeAPI.Graphics;
 
-namespace PlumeAPI.Entities {
+namespace PlumeAPI.Graphics {
 	public class Animation {
 		public Texture2D SpriteSheet;
 		public int CellDuration = 1;

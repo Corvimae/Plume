@@ -25,6 +25,7 @@ namespace PlumeAPI.Networking {
 
 		public void SetScope(EntityScope scope) {
 			this.Scope = scope;
+			Camera.SetBoundry(scope.GetBoundry());
 		}
 
 		public void SetAndSendScope(EntityScope scope) {

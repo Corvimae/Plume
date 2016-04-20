@@ -32,12 +32,12 @@ namespace PlumeClient.Utilities {
 		public SortedDictionary<int, List<Action>> ProcessAndReturnDrawQueue() {
 			Operations.Clear();
 			foreach(BaseEntity entity in Scope.GetEntities()) {
-				if(entity.HasPropertyEnabled("draw") && Camera.IsOnCamera(entity.GetDrawBoundry())) {
+			/*	if(Camera.IsOnCamera(entity.GetDrawBoundry())) {
 					AddOperation(entity.DrawLayer, (Action) entity.GetDelegate("Draw"));
 					foreach(KeyValuePair<int, Action> entry in entity.GetDrawActionRegistry()) {
 						AddOperation(entry.Key, entry.Value);
 					}
-				}
+				}*/
 			}
 			return Operations;
 		}

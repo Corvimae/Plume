@@ -1,5 +1,6 @@
 ﻿using Lidgren.Network;
 using PlumeAPI.Entities;
+using PlumeAPI.Events;
 using PlumeAPI.Modularization;
 using PlumeAPI.Networking;
 using PlumeAPI.Networking.Builtin;
@@ -76,7 +77,6 @@ namespace PlumeServer {
 			foreach(EntityScope scope in ScopeController.GetAllScopes()) {
 				scope.Update();
 			}
-
 			ModuleController.InvokeStartupMethod("Update");
 		}
 	}

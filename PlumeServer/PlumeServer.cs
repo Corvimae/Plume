@@ -2,7 +2,6 @@
 using PlumeAPI.Modularization;
 using PlumeAPI.Networking;
 using PlumeAPI.World;
-using PlumeServer.World;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +33,6 @@ namespace PlumeServer {
 			ServerMessageDispatch.Server.Start();
 			Console.WriteLine(Configuration.AppIdentifier + " server started on port " + Configuration.Port + ".");
 
-			Map testMap = new Map("MyMap", 50, 50);
 
 			Core = new ServerCore();
 			Core.Begin();

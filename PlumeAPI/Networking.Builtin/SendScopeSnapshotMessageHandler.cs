@@ -8,6 +8,7 @@ using PlumeAPI.World;
 using PlumeAPI.Entities;
 using System.Reflection;
 using PlumeAPI.Utilities;
+using PlumeAPI.Entities.Components;
 
 namespace PlumeAPI.Networking.Builtin {
 	public class SendScopeSnapshotMessageHandler : MessageHandler {
@@ -36,18 +37,20 @@ namespace PlumeAPI.Networking.Builtin {
 				PropertyValues.Clear();
 				int id = message.ReadInt32();
 				BaseEntity entity = ScopeController.GetEntityById(id);
+				Console.WriteLine(id);
 				//If the entity is null, it simply means the message to register it client-side hasn't arrived yet.
 				//This screws up the rest of the snapshot, so we abort early
 				if(entity != null) {
-					EntityPropertyData[] properties = entity.GetSyncableProperties();
+					NetworkedPropertyData[] properties = entity.GetComponent<NetworkedComponent>().GetSyncableProperties();
 					//Set the last updated tick
 					short count = message.ReadByte();
 					for(int i = 0; i < count; i++) {
 						byte position = message.ReadByte();
 						//Find the property in that position
-						EntityPropertyData property = properties[position];
-						object value = EntitySnapshot.ReadType(property.Info.PropertyType, message);
-						snapshot.SetProperty(id, property.Info, value);
+						NetworkedPropertyData property = properties[position];
+						object value = EntitySnapshot.ReadType(property.Referencer.Info.PropertyType, message);
+						snapshot.SetProperty(id, property.Referencer, value);
+						Console.WriteLine(property.Referencer.Info.Name + " set to " + value);
 					}
 				} else {
 					return;

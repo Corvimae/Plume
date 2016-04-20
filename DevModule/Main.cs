@@ -10,18 +10,20 @@ using System;
 
 namespace DevModule {
 	class Main : PlumeModule {
-		Animation animation;
 		int Frame = 0;
 		public Main() {
 			Debug.WriteLine("DevModule launched");
-			EventController.RegisterEvent("pause");
-			TextureController.RegisterTexture("excavator", "excavator.png", GetModule());
-			TextureController.RegisterAnimation("excavator_walk", "excavator", 32, 64, 3, 6);
-			CallOnEvent("pause", 0, "TogglePause");
-			animation = TextureController.GetAnimationInstance("excavator_walk"); //Inefficient but good for testing
-			MessageController.RegisterMessageType(new DebugMessage(null));
 		}
 
+		public override void Register() {
+			base.Register();
+			EventController.RegisterEvent("pause");
+			MessageController.RegisterMessageType(new DebugMessage(null));
+			Module.LoadEntitiesFromFile("Assets/Entities/tiles.json");
+		}
+
+		public override void RegisterClient() {
+		}
 		public override void AfterLoad() {
 			Debug.WriteLine("DevModule loaded!");
 		}
@@ -37,10 +39,6 @@ namespace DevModule {
 
 		public override void UserDisconnected(Client user) {
 			Console.WriteLine("DevModule: " + user.Name + " disconnected!");
-		}
-
-		public void TogglePause(EventData eventData) {
-			animation.Paused = !animation.Paused;
 		}
 
 		public override void Draw() {

@@ -3,54 +3,66 @@ using System.Collections.Generic;
 using System.Linq;
 using PlumeAPI.Modularization;
 using System.Diagnostics;
+using PlumeAPI.Entities;
+using PlumeAPI.World;
 
 namespace PlumeAPI.Events {
 	public static class EventController {
-		public static Dictionary<EventDefinition, SortedDictionary<int, List<Action<EventData>>>> EventRegistry 
-		= new Dictionary<EventDefinition, SortedDictionary<int, List<Action<EventData>>>>();
+		public static Dictionary<string, SortedDictionary<int, List<EventRegistration>>> EventRegistry 
+		= new Dictionary<string, SortedDictionary<int, List<EventRegistration>>>();
 
 		static EventController() {
+			RegisterEvent("update");
+			RegisterEvent("draw");
 			RegisterEvent("click");
 		}
 	
-		public static EventDefinition RegisterEvent(string name) {
-			if(!EventRegistry.Any(x => x.Key.Name == name)) {
-				EventDefinition definition = new EventDefinition(name);
-				EventRegistry.Add(definition, new SortedDictionary<int , List<Action<EventData>>>(Comparer<int>.Create((x, y) => y.CompareTo(x))));
+		public static void RegisterEvent(string name) {
+			if(!EventRegistry.Any(x => x.Key == name)) {
+				EventRegistry.Add(name, new SortedDictionary<int , List<EventRegistration>>(Comparer<int>.Create((x, y) => y.CompareTo(x))));
 				Console.WriteLine("Event " + name + " registered.");
-				return definition;
 			} else {
-				Console.WriteLine("Event " + name + " already exists, returning reference to its definition.");
-				return EventRegistry.First(x => x.Key.Name == name).Key;
+				Console.WriteLine("Event " + name + " already exists.");
 			}
 		}
 
-		public static void CallOnEvent(string name, int priority, Action<EventData> method) {
-			if(EventRegistry.Keys.Any(x => x.Name == name)) {
-				KeyValuePair<EventDefinition, SortedDictionary<int, List<Action<EventData>>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
+		public static EventRegistration CallOnEvent(string name, int priority, Action<EventData> method, EntityScope scope) {
+			if(EventRegistry.Keys.Any(x => x == name)) {
+				KeyValuePair<string, SortedDictionary<int, List<EventRegistration>>> registryItem = EventRegistry.First(x => x.Key == name);
 				if(!registryItem.Value.Keys.Contains(priority)) {
-					registryItem.Value[priority] = new List<Action<EventData>>();
+					registryItem.Value[priority] = new List<EventRegistration>();
 				}
-				registryItem.Value[priority].Add(method);
+				EventRegistration registration = new EventRegistration(method, scope);
+				registryItem.Value[priority].Add(registration);
+				return registration;
 			} else {
 				throw new InvalidEventException(name);
 			}
+		}
+
+		public static EventRegistration CallOnEvent(string name, int priority, Action<EventData> method) {
+			return CallOnEvent(name, priority, method, null);
 		}
 
 		public static void UnregisterEvent(string name) {
-			if(EventRegistry.Any(x => x.Key.Name == name)) {
-				EventRegistry.Remove(EventRegistry.First(x => x.Key.Name == name).Key);
+			if(EventRegistry.Any(x => x.Key == name)) {
+				EventRegistry.Remove(EventRegistry.First(x => x.Key == name).Key);
 			} else {
 				throw new InvalidEventException(name);
 			}
 		}
 
-		public static void Fire(string name, EventData eventData) {
-			if(EventRegistry.Any(x => x.Key.Name == name)) {	
-				KeyValuePair<EventDefinition, SortedDictionary<int, List<Action<EventData>>>> registryItem = EventRegistry.First(x => x.Key.Name == name);
-				foreach(KeyValuePair<int, List<Action<EventData>>> level in registryItem.Value) {
-					foreach(Action<EventData> request in level.Value) {
-						request.Invoke(eventData);
+		public static void Fire(string name, EventData eventData, EntityScope scope) {
+			if(EventRegistry.Any(x => x.Key == name)) {	
+				KeyValuePair<string, SortedDictionary<int, List<EventRegistration>>> registryItem = EventRegistry.First(x => x.Key == name);
+				for(int i = 0; i < registryItem.Value.Count(); i++) {
+					List<EventRegistration> allCallbacks = registryItem.Value.ElementAt(i).Value;
+					if(scope != null) {
+						allCallbacks = allCallbacks.Where(x => x.Scope == scope).ToList();
+					}
+					EventRegistration[] callbacks = allCallbacks.ToArray();
+					foreach(EventRegistration request in callbacks) {
+						request.Callback.Invoke(eventData);
 						if(!eventData.ContinuePropagating) return;
 					}
 				}
@@ -59,12 +71,33 @@ namespace PlumeAPI.Events {
 			}
 		}
 
+		public static void Fire(string name, EventData eventData) {
+			Fire(name, eventData, null);
+		}
+
 		public static void Fire(string name, Dictionary<string, object> hash) {
 			Fire(name, new EventData(hash));
 		}
 
+		public static void Fire(string name, Dictionary<string, object> hash, EntityScope scope) {
+			Fire(name, new EventData(hash), scope);
+		}
+
+
 		public static void Fire(string name) {
 			Fire(name, new EventData());
+		}
+		public static void Fire(string name, EntityScope scope) {
+			Fire(name, new EventData(), scope);
+		}
+	}
+
+	public class EventRegistration {
+		public Action<EventData> Callback;
+		public EntityScope Scope; 
+		public EventRegistration(Action<EventData> callback, EntityScope scope) {
+			Callback = callback;
+			Scope = scope;
 		}
 	}
 

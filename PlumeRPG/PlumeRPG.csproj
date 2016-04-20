@@ -45,9 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\MovementCommands.cs" />
-    <Compile Include="Entities\Actor.cs" />
-    <Compile Include="Entities\MapTile.cs" />
-    <Compile Include="Entities\Player.cs" />
+    <Compile Include="Components\PlayerUpdateComponent.cs" />
+    <Compile Include="Entities\ActorMotion.cs" />
+    <Compile Include="Entities\Map.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Networking.Handlers\SendUserDataMessageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,12 +60,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\AStone.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\excavator.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Stone.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="module.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="Assets\Entities\player.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

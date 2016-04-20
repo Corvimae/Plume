@@ -9,18 +9,20 @@ using PlumeAPI.Entities;
 namespace PlumeAPI.Networking.Builtin {
 	class SyncEntityIdsMessageHandler : MessageHandler {
 		public override OutgoingMessage PackageMessage(OutgoingMessage message) {
-			foreach(KeyValuePair<int, string> pair in EntityController.EntityIds) {
+			foreach(KeyValuePair<int, BaseEntity> pair in EntityController.EntityPrototypes) {
+				Console.WriteLine(pair.Key + "," + pair.Value.Name);
 				message.Write(pair.Key);
-				message.Write(pair.Value);
+				message.Write(pair.Value.Name);
 			}
 			return message;
 		}
 
 		public override void Handle(IncomingMessage message) {
-			EntityController.EntityIds.Clear();
+			Dictionary<int, BaseEntity> newRegistry = new Dictionary<int, BaseEntity>();
 			while(message.Position < message.LengthBits) {
-				EntityController.EntityIds.Add(message.ReadInt32(), message.ReadString());
+				newRegistry.Add(message.ReadInt32(), EntityController.GetEntityPrototypeByName(message.ReadString()));
 			}
+			EntityController.EntityPrototypes = newRegistry;
 		}
 	}
 }

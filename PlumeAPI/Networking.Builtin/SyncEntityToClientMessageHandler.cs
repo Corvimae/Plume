@@ -25,12 +25,8 @@ namespace PlumeAPI.Networking.Builtin {
 		public override void Handle(IncomingMessage message) {
 			string scopeName = message.ReadString();
 			int typeId = message.ReadInt32();
-			string referencer = EntityController.EntityIds[typeId];
-			Type entityType = ModuleController.GetEntityTypeByReferencer(referencer);
-			object[] entityArguments = TypeServices.InvokeStaticTypeMethod("UnpackageFromInitialTransfer", entityType, message);
-			EntityScope scope = ScopeController.GetScope(scopeName);
-			BaseEntity entity = ScopeController.UpdateOrCreateWithId((int)entityArguments[0], scope, referencer, entityArguments.Skip(1).ToArray());
-			Console.WriteLine("Entity created of type " + entityType.FullName);
+			BaseEntity newEntity = EntityController.CreateNewEntityFromServerData(typeId, message.ReadInt32(), ScopeController.GetScope(scopeName), message);
+			Console.WriteLine("Entity created of type " + newEntity.Name + ", id: " + newEntity.Id);
 		}
 	}
 }
