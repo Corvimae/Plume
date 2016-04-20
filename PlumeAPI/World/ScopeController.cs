@@ -39,7 +39,6 @@ namespace PlumeAPI.World {
 
 		public static int RegisterEntity(string scope, BaseEntity entity) {
 			if(ScopeRegistry.ContainsKey(scope)) {
-
 				EntityScope entityScope = ScopeRegistry[scope];
 				return RegisterEntity(entityScope, entity);
 			}
@@ -47,7 +46,11 @@ namespace PlumeAPI.World {
 		}
 
 		public static int RegisterEntity(EntityScope entityScope, BaseEntity entity) {
-			entity.Id = GetNextHighestId();
+			return RegisterEntity(entityScope, entity, GetNextHighestId());
+		}
+
+		public static int RegisterEntity(EntityScope entityScope, BaseEntity entity, int id) {
+			entity.Id = id;
 			entityScope.EntitiesInScope.Add(entity.Id, entity);
 			entity.Scope = entityScope;
 
@@ -59,24 +62,6 @@ namespace PlumeAPI.World {
 			return entity.Id;
 		}
 
-		public static BaseEntity UpdateOrCreateWithId(int id, EntityScope scope, string referencer, params object[] arguments) {
-			BaseEntity entity;
-			if(Entities.ContainsKey(id)) {
-				entity = Entities[id];
-			} else {
-				entity = ModuleController.CreateEntityByReferencer(referencer, arguments);
-				entity.Id = id;
-				RegisterEntity(scope.Name, entity);
-			}
-			return entity;
-		}
-		public static void UpdateFromId(int id, params object[] arguments) {
-			if(Entities.ContainsKey(id)) {
-				BaseEntity entity = Entities[id];
-			} else {
-				Console.WriteLine("Entity with id " + id + " missing.");
-			}
-		}
 		public static EntityScope GetScope(string name) {
 			if(ScopeRegistry.ContainsKey(name)) {
 				return ScopeRegistry[name];

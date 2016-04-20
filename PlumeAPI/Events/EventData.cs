@@ -10,7 +10,6 @@ namespace PlumeAPI.Events {
 		public EventData(Dictionary<string, object> items) : base(items) {
 		}
 
-
 		public void EndPropagation() {
 			ContinuePropagating = false;
 		}

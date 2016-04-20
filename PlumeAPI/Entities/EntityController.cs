@@ -1,4 +1,6 @@
-﻿using PlumeAPI.Utilities;
+﻿using PlumeAPI.Networking;
+using PlumeAPI.Utilities;
+using PlumeAPI.World;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PlumeAPI.Entities {
 	public static class EntityController {
-		public static Dictionary<int, string> EntityIds = new Dictionary<int, string>();
+		public static Dictionary<int, BaseEntity> EntityPrototypes = new Dictionary<int, BaseEntity>();
 
 		public static SortedSet<ClientEntitySnapshot> Snapshots = new SortedSet<ClientEntitySnapshot>();
 		public static ClientEntitySnapshot SnapshotBeforeMoment = null;
@@ -23,12 +25,37 @@ namespace PlumeAPI.Entities {
 			return NextHighestId++;
 		}
 		
-		public static int GetEntityIdByName(string name) {
-			return EntityIds.FirstOrDefault(item => item.Value == name).Key;
+		public static BaseEntity CreateNewEntity(string name) {
+			return EntityPrototypes.Values.FirstOrDefault(item => item.Name == name).Clone();
 		}
 
-		public static void AddEntityType(string fullName) {
-			EntityIds.Add(GetNextHighestId(), fullName);
+		public static BaseEntity CreateNewEntity(string name, EntityScope scope) {
+			BaseEntity entity = CreateNewEntity(name);
+			entity.RegisterToScope(scope);
+			return entity;
+		}
+
+		public static BaseEntity CreateNewEntityFromServerData(int typeId, int id, EntityScope scope, IncomingMessage message) {
+			BaseEntity newEntity = EntityController.CreateNewEntity(typeId);
+			newEntity.Id = id;
+			newEntity.UnpackageFromInitialTransfer(message);
+			ScopeController.RegisterEntity(scope, newEntity, id);
+			return newEntity;
+		}
+		public static BaseEntity CreateNewEntity(int id) {
+			return EntityPrototypes[id].Clone();
+		}
+
+		public static int GetEntityPrototypeIdByName(string name) {
+			return EntityPrototypes.FirstOrDefault(item => item.Value.Name == name).Key;
+		}
+
+		public static BaseEntity GetEntityPrototypeByName(string name) {
+			return EntityPrototypes.Values.FirstOrDefault(item => item.Name == name);
+		}
+
+		public static void RegisterPrototype(BaseEntity prototype) {
+			EntityPrototypes.Add(GetNextHighestId(), prototype);
 		}
 
 		public static void SetSnapshotsForMoment() {
@@ -42,7 +69,6 @@ namespace PlumeAPI.Entities {
 				if(i > 0 && i + 2 < Snapshots.Count()) {
 					SnapshotBeforeMoment = snapshot;
 					SnapshotAfterMoment = Snapshots.ElementAt(i + 2);
-					Console.WriteLine((InterpolationPoint - SnapshotBeforeMoment.Received) + "," + (SnapshotAfterMoment.Received - SnapshotBeforeMoment.Received));
 					Snapshots.RemoveWhere(x => x.Received < SnapshotBeforeMoment.Received);
 				}
 			}

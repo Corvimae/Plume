@@ -1,6 +1,7 @@
 ﻿using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using PlumeAPI.Entities;
+using PlumeAPI.Entities.Components;
 using PlumeAPI.Networking;
 using System;
 using System.Collections.Generic;
@@ -20,21 +21,16 @@ namespace PlumeAPI.World {
 
 		public EntitySnapshot(BaseEntity entity) {
 			Id = entity.Id;
-			EntitySnapshot previousEntitySnapshot = null;
-			ScopeSnapshot previousScopeSnapshot = entity.Scope.PreviousSnapshot;
-			if(previousScopeSnapshot != null) {
-				previousEntitySnapshot = previousScopeSnapshot.GetSnapshotForEntity(Id);
-			}
 
-			EntityPropertyData[] properties = entity.GetSyncableProperties();
+
+			NetworkedPropertyData[] properties = entity.GetDerivativeComponent<NetworkedComponent>().GetSyncableProperties();
 			int i = 0;
-			foreach(EntityPropertyData property in properties) {
-				object value = property.Get();
-				object oldValue = null;
-				if(previousEntitySnapshot != null) {
-					previousEntitySnapshot.AllProperties.TryGetValue(property.Info.Name, out oldValue);
+			foreach(NetworkedPropertyData property in properties) {
+				Console.WriteLine(property.Referencer.Info.Name + "," + property.Dirty);
+				if(property.Dirty) {
+					ChangedProperties.Add(new SyncablePropertyValue(i, property.Get()));
+					property.Dirty = false;
 				}
-				if(!value.Equals(oldValue)) ChangedProperties.Add(new SyncablePropertyValue(i, value));
 				i++;
 			}
 		}
@@ -117,7 +113,7 @@ namespace PlumeAPI.World {
 
 			RegisterTypeHandler(
 				typeof(System.Boolean),
-				(message) => {return message.ReadBoolean(); },
+				(message) => { return message.ReadBoolean(); },
 				(obj, message) => { message.Write((bool)obj); }
 			);
 

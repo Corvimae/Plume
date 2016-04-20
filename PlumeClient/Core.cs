@@ -162,14 +162,6 @@ namespace PlumeClient {
 					{ "position", localMousePoint },
 				});
 				EventController.Fire("click", eventData);
-				if(eventData.ContinuePropagating && ActiveScope != null) {
-					foreach(BaseEntity e in ActiveScope.GetEntities().Where(e => e.HasPropertyEnabled("click"))) {
-						if(e.GetDrawBoundry().Contains((Vector2)eventData["position"])) {
-							e.OnClick(eventData);
-							if(!eventData.ContinuePropagating) break;
-						}
-					}
-				}
 			}
 
 			previousMouseState = mouseState;
@@ -181,13 +173,14 @@ namespace PlumeClient {
 
 			ModuleController.InvokeStartupMethod("Update");
 
-			if(ActiveScope != null) {
+			EventController.Fire("update");
+			/*if(ActiveScope != null) {
 				foreach(BaseEntity entity in ActiveScope.GetEntities()) {
 					if(entity.HasPropertyEnabled("update")) {
 						entity.Update();
 					}
 				}
-			}
+			}*/
 
 			base.Update(gameTime);
 			UpdateTime = GameServices.TimeElapsed() - startTime;
@@ -205,17 +198,18 @@ namespace PlumeClient {
 			Matrix transformationMatrix = Camera.GetTransformationMatrix();
 			Matrix inverseMatrix = Matrix.Invert(transformationMatrix);
 			spriteBatch.Begin(transformMatrix: transformationMatrix);
-			foreach(PlumeAPI.Modularization.Module module in ModuleController.ModuleRegistry.Values) {
-				module.TryInvokeStartupMethod("Draw", new object[] { });
-			}
 
-			if(ActiveScope != null) {
+			ModuleController.InvokeStartupMethod("Draw");
+			EventController.Fire("draw");
+
+
+			/*if(ActiveScope != null) {
 				foreach(List<Action> layer in drawQueue.ProcessAndReturnDrawQueue().Values) {
 					foreach(Action operation in layer) {
 						operation.Invoke();
 					}
 				}
-			}
+			}*/
 
 			//UI Layer
 			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;

@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PlumeRPG;
+using PlumeRPG.Components;
+using PlumeAPI.Entities.Components;
 
 namespace PlumeAPI.Commands.Builtin {
 	class MovementCommands {
@@ -15,7 +17,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"+north",
 				"Sends a request to the server to begin moving the client's player entity north.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState |= ActorMotion.North;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState |= ActorMotion.North;
 				},
 				CommandController.ServerNoop
 
@@ -24,7 +26,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"-north",
 				"Sends a request to the server to stop moving the client's player entity north.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState &= ~ActorMotion.North;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState &= ~ActorMotion.North;
 				},
 				CommandController.ServerNoop
 			);
@@ -33,7 +35,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"+south",
 				"Sends a request to the server to begin moving the client's player entity south.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState |= ActorMotion.South;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState |= ActorMotion.South;
 				},
 				CommandController.ServerNoop
 			);
@@ -41,7 +43,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"-south",
 				"Sends a request to the server to stop moving the client's player entity south.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState &= ~ActorMotion.South;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState &= ~ActorMotion.South;
 				},
 				CommandController.ServerNoop
 			);
@@ -50,7 +52,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"+east",
 				"Sends a request to the server to begin moving the client's player entity east.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState |= ActorMotion.East;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState |= ActorMotion.East;
 				},
 				CommandController.ServerNoop
 			);
@@ -58,7 +60,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"-east",
 				"Sends a request to the server to stop moving the client's player entity east.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState &= ~ActorMotion.East;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState &= ~ActorMotion.East;
 				},
 				CommandController.ServerNoop
 			);
@@ -67,7 +69,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"+west",
 				"Sends a request to the server to begin moving the client's player entity west.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState |= ActorMotion.West;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState |= ActorMotion.West;
 				},
 				CommandController.ServerNoop
 			);
@@ -75,7 +77,7 @@ namespace PlumeAPI.Commands.Builtin {
 				"-west",
 				"Sends a request to the server to stop moving the client's player entity west.",
 				(arguments) => {
-					Main.ActivePlayer.MotionState &= ~ActorMotion.West;
+					Main.ActivePlayer.GetComponent<PlayerUpdateComponent>().MotionState &= ~ActorMotion.West;
 				},
 				CommandController.ServerNoop
 			);

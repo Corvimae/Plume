@@ -29,11 +29,19 @@ namespace PlumeAPI.Graphics {
 			return CameraBounds.Contains(point);
 		}
 
+		public static bool IsInViewport(Rectangle boundry) {
+			return CameraBounds.Intersects(boundry);
+		}
+
 		public static void DrawTexture(Texture2D sprite, float x, float y) {
-			spriteBatch.Draw(sprite, new Vector2(x, y), Color.White);
+			if(IsInViewport(new Rectangle((int) x, (int) y, sprite.Width, sprite.Height))) {
+				spriteBatch.Draw(sprite, new Vector2(x, y), Color.White);
+			}
 		}
 		public static void DrawTexture(Texture2D sprite, float x, float y, Color color) {
-			spriteBatch.Draw(sprite, new Vector2(x, y), color);
+			if(IsInViewport(new Rectangle((int) x, (int) y, sprite.Width, sprite.Height))) {
+				spriteBatch.Draw(sprite, new Vector2(x, y), color);
+			}
 		}
 		public static void DrawTexture(Texture2D sprite, Vector2 position, Rectangle clip, Color color, Vector2 origin, SpriteEffects effect) {
 			spriteBatch.Draw(sprite, position, clip, color, 0.0f, origin, 1.0f, effect, 0.0f);
@@ -42,6 +50,7 @@ namespace PlumeAPI.Graphics {
 		public static void DrawAnimation(Animation animation, float x, float y, Color color) {
 			animation.Draw(new Vector2(x, y), color);
 		}
+
 		public static void DrawString(SpriteFont font, string text, float x, float y, Color color) {
 			Vector2 dimensions = font.MeasureString(text);
 			if(CameraBounds.Intersects(new Rectangle((int)x, (int)y, (int)dimensions.X, (int)dimensions.Y))) {

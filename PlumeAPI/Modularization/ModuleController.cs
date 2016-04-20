@@ -65,39 +65,14 @@ namespace PlumeAPI.Modularization {
 				Console.WriteLine("Importing script data for " + module.Item.Definition.ModuleInfo.Name);
 				module.Item.BuildModule();
 			}
+			InvokeStartupMethod("AfterLoad");
+
 		}
 
 		public static IEnumerable<Module> GetModules() {
 			return ModuleRegistry.Values;
 		}
 
-		public static BaseEntity CreateEntityByReferencer(string referenceString, params object[] arguments) {
-			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referenceString);
-			if(ModuleRegistry.ContainsKey(referencer.Module)) {
-				BaseEntity entity = ModuleRegistry[referencer.Module].GetInstance(referencer.GetReferencer(), arguments);
-				return entity;
-			} else {
-				throw new ModuleNotRegisteredException(referencer.Module);
-			}
-		}
-
-		public static Type GetEntityTypeByReferencer(string referencerString) {
-			EntityReferencer referencer = ModuleController.ConvertStringToEntityReferencer(referencerString);
-			if(ModuleRegistry.ContainsKey(referencer.Module)) {
-				return ModuleRegistry[referencer.Module].GetEntityType(referencer.GetReferencer());
-			} else {
-				throw new ModuleNotRegisteredException(referencer.Module);
-			}
-		}
-
-		public static EntityReferencer ConvertStringToEntityReferencer(string referencer) {
-			string[] referencerComponents = referencer.Split(new string[] { "." }, StringSplitOptions.None);
-			if(referencerComponents.Length >= 2) {
-				return new EntityReferencer(referencerComponents[0], String.Join(".", referencerComponents.Skip(1)));
-			} else {
-				throw new InvalidReferencerException(referencer);
-			}
-		}
 		public static void InvokeStartupMethod(string method, params object[] arguments) {
 			foreach(Module module in ModuleController.ModuleRegistry.Values) {
 				module.TryInvokeStartupMethod(method, arguments);
@@ -110,46 +85,14 @@ namespace PlumeAPI.Modularization {
 		Server
 	}
 
-	public struct EntityReferencer {
-		public string Module;
-		public string Name;
-		public EntityReferencer(string module, string name) {
-			this.Module = module;
-			this.Name = name;
-		}
 
-		public string GetReferencer() {
-			return Module + "." + Name;
-		}
-	}
-	public class InvalidEntityTypeException : Exception {
-	}
-	public class DuplicateEntityDefinitionException : Exception {
-	}
 	public class ModuleNotRegisteredException : Exception {
 		public string ModuleName;
 		public ModuleNotRegisteredException(string name) {
 			this.ModuleName = name;
 		}
 	}
-	public class EntityNotFoundException : Exception {
-		public string EntityName;
-		public EntityNotFoundException(string name) {
-			this.EntityName = name;
-		}
-	}
-	public class EntityTypeNotFoundException : Exception {
-		public string EntityTypeName;
-		public EntityTypeNotFoundException(string name) {
-			this.EntityTypeName = name;
-		}
-	}
-	public class InvalidReferencerException : Exception {
-		public string Referencer;
-		public InvalidReferencerException(string referencer) {
-			this.Referencer = referencer;
-		}
-	}
+
 	public class MissingDependencyModuleException : Exception {
 		public string Identifier;
 		public string Version;

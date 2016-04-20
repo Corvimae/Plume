@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -19,6 +21,24 @@ namespace PlumeAPI.Utilities {
 				return type.InvokeMember(method, BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, arguments);
 			}
 			return null;
+		}
+
+		public static object InvokeWithNamedParameters(this MethodBase method, object obj, IDictionary<string, object> parameters) {
+			return method.Invoke(obj, MapParameters(method, parameters));
+		}
+
+		public static object[] MapParameters(MethodBase method, IDictionary<string, object> parameters) {
+			string[] parameterNames = method.GetParameters().Select(p => p.Name).ToArray();
+			object[] parametersOut = new object[parameterNames.Length];
+			for(int i = 0; i < parameterNames.Length; i++) {
+				parametersOut[i] = Type.Missing;
+			}
+
+			foreach(KeyValuePair<string, object> pair in parameters) {
+				parametersOut[Array.IndexOf(parameterNames, pair.Key)] = pair.Value;
+			}
+
+			return parametersOut;
 		}
 
 		public static dynamic InvokeMethod(object instance, string method, params object[] arguments) {
