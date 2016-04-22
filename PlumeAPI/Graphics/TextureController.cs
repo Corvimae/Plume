@@ -16,7 +16,6 @@ namespace PlumeAPI.Graphics {
 		protected static Dictionary<string, Animation> AnimationRegistry = new Dictionary<string, Animation>();
 
 		public static Texture2D RegisterTexture(string name, string fileName, Module module) {
-			if(ModuleController.Environment == PlumeEnvironment.Server) return null;
 			string path = module.Directory.FullName + "/Assets/" + fileName;
 			try {
 				if(!TextureRegistry.ContainsKey(name)) {
@@ -35,7 +34,6 @@ namespace PlumeAPI.Graphics {
 		}
 
 		public static Animation RegisterAnimation(string name, string textureName, int width, int height, int frameDuration, int totalFrames) {
-			if(ModuleController.Environment == PlumeEnvironment.Server) return null;
 			if(!AnimationRegistry.ContainsKey(name)) {
 				Texture2D texture = GetTexture(textureName);
 				if(texture != null) {
@@ -52,7 +50,6 @@ namespace PlumeAPI.Graphics {
 		}
 
 		public static Texture2D GetTexture(string key) {
-			if(ModuleController.Environment == PlumeEnvironment.Server) return null;
 			try {
 				return TextureRegistry[key];
 			} catch(KeyNotFoundException) {
@@ -62,7 +59,6 @@ namespace PlumeAPI.Graphics {
 		}
 
 		public static Animation GetAnimationInstance(string key) {
-			if(ModuleController.Environment == PlumeEnvironment.Server) return null;
 			try {
 				return AnimationRegistry[key].Clone();
 			} catch(KeyNotFoundException) {

@@ -1,0 +1,16 @@
+﻿{
+	"name":	"Positional",
+	"components": {
+		"Positional": { }
+	},
+	{
+		"name": "MapTile",
+		"extends": "Positional",
+		"components": {
+			"DrawTexture": {
+				"priority": 0,
+				"textures": { }
+			}
+		}
+	}
+}

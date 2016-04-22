@@ -17,7 +17,7 @@ namespace PlumeAPI.Entities.Components {
 			Animation = TextureController.GetAnimationInstance(animation);
 		}
 
-		public override void CallClient(EventData eventData) {
+		public override void Call(EventData eventData) {
 			Vector2 position = Entity.GetComponent<PositionalComponent>().Position;
 			Canvas.DrawAnimation(Animation, position.X, position.Y, Color.White);
 		}

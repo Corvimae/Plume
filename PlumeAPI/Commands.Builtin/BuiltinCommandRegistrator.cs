@@ -8,7 +8,6 @@ namespace PlumeAPI.Commands.Builtin {
 	static class BuiltinCommandsRegistrator {
 		public static void Register() {
 			DebugCommands.Register();
-			NetworkCommands.Register();
 		}
 	}
 }

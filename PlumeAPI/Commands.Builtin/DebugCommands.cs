@@ -10,9 +10,8 @@ namespace PlumeAPI.Commands.Builtin {
 			CommandController.RegisterCommand(
 				"plume_test",
 				"Test",
-				CommandController.Forward,
-				(source, arguments) => {
-					Console.WriteLine("Test from " + source.Name + "!");
+				(arguments) => {
+					Console.WriteLine("Test!");
 				}
 			);
 		}

@@ -1,32 +1,24 @@
 ﻿[
 	{
 		"name": "Stone",
-		"components": [
-			{
-				"component": "NetworkedPositional"
-			},
-			{
-				"component": "Networked"
-			},
-			{
-				"component":	"DrawTexture",
-				"texture":		"Stone_texture"
+		"extends": "MapTile",
+		"components": {
+			"DrawTexture": {
+				"textures": {
+					"Stone_texture": { }
+				}
 			}
-		]
+		}
 	},
-		{
+	{
 		"name": "AStone",
-		"components": [
-			{
-				"component":	"Positional"
-			},
-			{
-				"component": "DrawTexture",
-				"texture": "AStone_texture"
-			},
-			{
-				"component":  "Networked"
+		"extends": "MapTile",
+		"components": {
+			"DrawTexture": {
+				"textures": {
+					"AStone_texture": {}
+				}
 			}
-		]
+		}
 	}
 ]

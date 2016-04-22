@@ -1,7 +1,5 @@
 ﻿using PlumeAPI.Entities;
 using PlumeAPI.Modularization;
-using PlumeAPI.Networking;
-using PlumeAPI.Networking.Builtin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,10 +53,6 @@ namespace PlumeAPI.World {
 			entity.Scope = entityScope;
 
 			Entities.Add(entity.Id, entity);
-
-			if(ModuleController.Environment == PlumeEnvironment.Server) {
-				entityScope.Broadcast(new SyncEntityToClientMessageHandler(entity));
-			}
 			return entity.Id;
 		}
 

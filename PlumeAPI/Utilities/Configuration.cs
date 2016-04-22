@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace PlumeAPI.Utilities {
-	public static class ServerConfiguration {
+	public static class Configuration {
 		public static int TickRate = 60;
 	}
 }

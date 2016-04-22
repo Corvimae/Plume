@@ -57,7 +57,6 @@ namespace PlumeAPI.Graphics {
 			FramesPassed = 0;
 		}
 
-
 		public void Pause() {
 			Paused = true;
 		}

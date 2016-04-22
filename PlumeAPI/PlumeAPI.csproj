@@ -55,20 +55,16 @@
   <ItemGroup>
     <Compile Include="Commands.Builtin\BuiltinCommandRegistrator.cs" />
     <Compile Include="Commands.Builtin\DebugCommands.cs" />
-    <Compile Include="Commands.Builtin\NetworkCommands.cs" />
     <Compile Include="Commands\CommandController.cs" />
     <Compile Include="Entities.Components\DrawAnimationComponent.cs" />
     <Compile Include="Entities.Components\DrawTextureComponent.cs" />
     <Compile Include="Entities.Components\DrawComponent.cs" />
     <Compile Include="Entities.Components\EntityComponent.cs" />
     <Compile Include="Entities.Components\EventTriggeredComponent.cs" />
-    <Compile Include="Entities.Components\NetworkedComponent.cs" />
     <Compile Include="Entities.Components\PositionalComponent.cs" />
     <Compile Include="Graphics\Animation.cs" />
     <Compile Include="Entities\BaseEntity.cs" />
     <Compile Include="Entities\EntityController.cs" />
-    <Compile Include="Entities\EntityInterpolation.cs" />
-    <Compile Include="Entities\ClientEntitySnapshot.cs" />
     <Compile Include="Events\EventController.cs" />
     <Compile Include="Events\EventData.cs" />
     <Compile Include="Graphics\Canvas.cs" />
@@ -78,27 +74,8 @@
     <Compile Include="Modularization\ModuleController.cs" />
     <Compile Include="Modularization\ModuleDefinition.cs" />
     <Compile Include="Modularization\PlumeModule.cs" />
-    <Compile Include="Networking.Builtin\ForwardCommandToServerMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\SendClientEntityStateMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\SendModuleRequirementsMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\SendScopeSnapshotMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\SyncEntityIdsMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\SyncEntityToClientMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\SyncMessageTypesMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\RequestConnectionMessageHandler.cs" />
-    <Compile Include="Networking.Builtin\SendScopeMessageHandler.cs" />
-    <Compile Include="Networking\Client.cs" />
-    <Compile Include="Networking\ClientMessageDispatch.cs" />
-    <Compile Include="Networking\OutgoingMessage.cs" />
-    <Compile Include="Networking\IncomingMessage.cs" />
-    <Compile Include="Networking\Message.cs" />
-    <Compile Include="Networking\MessageHandler.cs" />
-    <Compile Include="Networking\MessageController.cs" />
-    <Compile Include="Networking\ServerMessageDispatch.cs" />
     <Compile Include="Utilities\DataStore.cs" />
-    <Compile Include="Utilities\MemberType.cs" />
-    <Compile Include="Utilities\ServerConfiguration.cs" />
-    <Compile Include="Utilities\ClientConfiguration.cs" />
+    <Compile Include="Utilities\Configuration.cs" />
     <Compile Include="Utilities\DependencyGraph.cs" />
     <Compile Include="Utilities\GameServices.cs" />
     <Compile Include="Utilities\TypeServices.cs" />
@@ -106,9 +83,7 @@
     <Compile Include="World\Camera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="World\EntityScope.cs" />
-    <Compile Include="World\EntitySnapshot.cs" />
     <Compile Include="World\ScopeController.cs" />
-    <Compile Include="World\ScopeSnapshot.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="limitations.md" />

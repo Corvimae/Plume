@@ -14,38 +14,18 @@ using System.Reflection;
 using System.Text;
 using Lidgren.Network;
 using PlumeAPI.World;
-using PlumeAPI.Networking;
-using PlumeAPI.Networking.Builtin;
 using PlumeAPI.Entities.Components;
+using Newtonsoft.Json.Linq;
 
 namespace PlumeAPI.Entities {
 	public class BaseEntity {
-		public EntityScope Scope { get; set; }
-
-		public string Name { get; set; }
-
 		public int Id { get; set; }
-
-		protected List<EntityComponent> Components = new List<EntityComponent>();
-
+		public string Name { get; set; }
+		public EntityScope Scope { get; set; }
 		public bool Prototypal { get; set; } = false;
-
+		protected List<EntityComponent> Components = new List<EntityComponent>();
+		internal JObject Definition {get;set;}
 		public BaseEntity() {}
-
-		public virtual void PackageForInitialTransfer(OutgoingMessage message) {
-			message.Write(EntityController.GetEntityPrototypeIdByName(Name));
-			message.Write(Id);
-			foreach(EntityComponent component in Components) {
-				component.PackageForInitialTransfer(message);
-			}
-		}
-
-		public void UnpackageFromInitialTransfer(IncomingMessage message) {
-			foreach(EntityComponent component in Components) {
-				component.UnpackageFromInitialTransfer(message);
-			}
-		}
-
 
 		public void RegisterToScope(EntityScope scope) {
 			ScopeController.RegisterEntity(scope, this);
@@ -57,6 +37,10 @@ namespace PlumeAPI.Entities {
 		public void AddComponent(EntityComponent component) {
 			Components.Add(component);
 			component.Entity = this;
+		}
+
+		public void RemoveComponent(string name) {
+			Components.RemoveAll(x => x.GetType().Name == name);
 		}
 
 		public T GetDerivativeComponent<T>() where T : EntityComponent {
@@ -106,6 +90,7 @@ namespace PlumeAPI.Entities {
 			BaseEntity entity = new BaseEntity();
 			entity.Name = Name;
 			entity.Prototypal = false;
+			entity.Definition = (JObject) Definition.DeepClone();
 			entity.Components = new List<EntityComponent>();
 			// Load each component
 			foreach(EntityComponent component in Components) {

@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using PlumeAPI.Events;
 using System.Reflection;
 using PlumeClient.Utilities;
-using PlumeAPI.Networking;
 using PlumeAPI.Commands;
 
 namespace PlumeClient {
@@ -25,9 +24,6 @@ namespace PlumeClient {
 		SpriteBatch spriteBatch;
 		static EntityScope ActiveScope;
 		static DrawQueue drawQueue;
-
-		Process serverWindow; //DEBUG
-
 		private KeyboardState previousKeyboardState = Keyboard.GetState();
 		private MouseState previousMouseState = Mouse.GetState();
 
@@ -46,18 +42,11 @@ namespace PlumeClient {
 
 		protected override void Initialize() {
 			base.Initialize();
-
-			/* DEBUG */
-#if WINDOWS
-			serverWindow = Process.Start(ModuleController.ModuleDirectory + "/../PlumeServer/bin/Debug/PlumeServer.exe");
-#endif
-			/* END DEBUG */
-
 			AppDomain.CurrentDomain.AssemblyResolve += ResolveDuplicateAssembly;
 
 			this.IsMouseVisible = true;
 			this.IsFixedTimeStep = true;
-			this.TargetElapsedTime = TimeSpan.FromSeconds(1.0f / ClientConfiguration.TickRate);
+			this.TargetElapsedTime = TimeSpan.FromSeconds(1.0f / Configuration.TickRate);
 
 			GameServices.AddService<GraphicsDevice>(GraphicsDevice);
 			GameServices.AddService<Core>(this);
@@ -72,8 +61,6 @@ namespace PlumeClient {
 			Camera.UseEasing = true;
 
 			GameServices.StartTimer();
-
-			ClientMessageDispatch.Connect("localhost", 25656);
 		}
 
 		protected override void LoadContent() {
@@ -95,13 +82,6 @@ namespace PlumeClient {
 			if(GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
 				Exit();
 			}
-
-			EntityController.Tick += 1;
-
-			EntityController.SetSnapshotsForMoment();
-
-			ClientMessageDispatch.ProcessIncomingMessages();
-
 			//Handle Input
 
 			KeyboardState keyboardState = Keyboard.GetState();
@@ -215,19 +195,12 @@ namespace PlumeClient {
 			float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
 			spriteBatch.DrawString(FontRepository.System,
 				"FPS: " + Math.Round(frameRate) + " | Draw: " + (GameServices.TimeElapsed() - start) + "ms | Update: " + Math.Round(UpdateTime) + 
-				"ms | Ping: " + Math.Round(ClientMessageDispatch.Ping*1000) + "ms",
-				Camera.ConvertViewportToCamera(new Vector2(5, 5)), Color.White);
+				"ms",	Camera.ConvertViewportToCamera(new Vector2(5, 5)), Color.White);
 			spriteBatch.End();
 			base.Draw(gameTime);
 		}
 
-		private void HandleGameExiting(object sender, EventArgs e) {
-			/* DEBUG */
-#if WINDOWS
-			if(!serverWindow.HasExited) serverWindow.Kill();
-#endif
-			/* END DEBUG */
-		}
+		private void HandleGameExiting(object sender, EventArgs e) {}
 
 
 		static Assembly ResolveDuplicateAssembly(object source, ResolveEventArgs e) {

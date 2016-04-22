@@ -24,15 +24,15 @@ namespace PlumeAPI.Modularization {
 		PlumeModule BaseLogic;
 
 		public Module(string name) {
-			Directory = new DirectoryInfo(ModuleController.ModuleDirectory + "/" + name);
+			Directory = new DirectoryInfo(Path.Combine(ModuleController.ModuleDirectory, name));
 			LoadDefinition();
 		}
 
 		public void BuildModule() {
-			DLL = Assembly.LoadFile(Directory.FullName + "/" + Definition.ModuleInfo.Name + ".dll");
+			DLL = Assembly.LoadFile(Path.Combine(Directory.FullName, Definition.ModuleInfo.Name + ".dll"));
 			foreach(Type type in DLL.GetTypes()) {
 				if(type.FullName == Definition.StartupClass) {
-					BaseLogic = (PlumeModule) Activator.CreateInstance(type);
+					BaseLogic = (PlumeModule)Activator.CreateInstance(type);
 					BaseLogic.Module = this;
 					BaseLogic.Register();
 				}
@@ -40,8 +40,8 @@ namespace PlumeAPI.Modularization {
 		}
 
 		public void LoadEntitiesFromFile(string filePath) {
-			JContainer entityDataContainer = JsonConvert.DeserializeObject<JContainer>(File.ReadAllText(Directory.FullName + "/" + filePath));
-			if(entityDataContainer is JObject) { 
+			JContainer entityDataContainer = JsonConvert.DeserializeObject<JContainer>(File.ReadAllText(Path.Combine(Directory.FullName, filePath)));
+			if(entityDataContainer is JObject) {
 				JObject entityData = (JObject)entityDataContainer;
 				BuildEntity(entityData, filePath);
 			} else if(entityDataContainer is JArray) {
@@ -63,43 +63,82 @@ namespace PlumeAPI.Modularization {
 
 		private void BuildEntity(JObject entityData, string filename) {
 			BaseEntity newEntity = new BaseEntity();
+
+			if(entityData["extends"] != null) {
+				newEntity = EntityController.GetEntityPrototypeByName((string)entityData["extends"]).Clone();
+				newEntity.Definition.Merge(entityData, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Merge });
+			} else {
+				newEntity.Definition = entityData;
+			}
+
+			entityData = newEntity.Definition;
+
 			if(entityData["name"] != null) {
-				newEntity.Name = (string) entityData["name"];
+				newEntity.Name = (string)entityData["name"];
 				newEntity.Prototypal = true;
 				if(entityData["components"] != null) {
-					JArray components = (JArray)entityData["components"];
-					foreach(JObject component in components) {
-						if(component["component"] != null) {
-							Dictionary<string, object> properties = new Dictionary<string, object>();
-							properties.Add("entity", newEntity);
-							foreach(JProperty property in component.Properties()) {
-								if(property.Name != "component") {
-									properties.Add(property.Name, property.Value);
-								}
-							}
-							string componentName = component["component"] + "Component";
-							Type componentType = null;
-							foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-								Type type = assembly.GetTypes().FirstOrDefault(x=> x.Name == componentName);
-								if(type != null) componentType = type;
-							}
-							if(componentType != null) {
-								EntityComponent newComponent = (EntityComponent)Activator.CreateInstance(componentType, MapJTokensToParameters(componentType.GetConstructors()[0], properties));
-								newEntity.AddComponent(newComponent);
-							} else {
-								throw new InvalidEntityException(filename, entityData["name"] + " contains component \"" + componentName + "\", which was not found in any installed modules.");
-							}
-						} else {
-							throw new InvalidEntityException(filename, entityData["name"] + " contains an unnamed component, which could not be handled.");
+					JObject componentList = (JObject)entityData["components"];
+					foreach(JProperty component in componentList.Properties()) {
+						EntityComponent newComponent = BuildComponent(component.Name, (JObject)component.Value, newEntity);
+						if(newEntity.HasComponent(newComponent.GetType().Name)) {
+							newEntity.RemoveComponent(newComponent.GetType().Name);
 						}
+						newEntity.AddComponent(newComponent);
 					}
 					EntityController.RegisterPrototype(newEntity);
 				}
 			} else {
-				throw new InvalidEntityException(filename, "Entities must have a name.");
+				throw new InvalidEntityException("Entities must have a name.");
 			}
 		}
-		private object[] MapJTokensToParameters(MethodBase method, IDictionary<string, object> parameters) {
+
+		private EntityComponent BuildComponent(string name, JObject componentData, BaseEntity entity) {
+			ComponentDefinition properties = new ComponentDefinition() { { "entity", entity } };
+			foreach(JProperty property in componentData.Properties()) {
+				properties.Add(property.Name, ConvertComponentItem(property.Value));
+			}
+
+			string componentName = name.Contains("Component") ? name : name + "Component";
+			Type componentType = null;
+			foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
+				Type type = assembly.GetTypes().FirstOrDefault(x => x.Name == componentName);
+				if(type != null) componentType = type;
+			}
+
+			if(componentType != null) {
+				return (EntityComponent)Activator.CreateInstance(componentType, MapToParameters(componentType.GetConstructors()[0], properties));
+			} else {
+				throw new InvalidEntityException(entity.Name + " contains component \"" + componentName + "\", which was not found in any installed modules.");
+			}
+		}
+
+		private object ConvertComponentItem(JToken item) {
+			switch(item.Type) {
+				case JTokenType.Object:
+					ComponentDefinition result = new ComponentDefinition();
+					foreach(JProperty property in ((JObject) item).Properties()) {
+						result.Add(property.Name, ConvertComponentItem(property.Value));
+					}
+					return result;
+				case JTokenType.Array:
+					List<object> subArray = new List<object>();
+					foreach(JToken arrayItem in ((JArray)item).Values()) {
+						subArray.Add(ConvertComponentItem(arrayItem));
+					}
+					return subArray.ToArray();
+				case JTokenType.Boolean:
+					return (bool)item;
+				case JTokenType.Float:
+					return (float)item;
+				case JTokenType.Integer:
+					return (int)item;
+				case JTokenType.String:
+					return (string)item;
+				default:
+					return item;
+			}
+		}
+		private object[] MapToParameters(MethodBase method, IDictionary<string, object> parameters) {
 			string[] parameterNames = method.GetParameters().Select(p => p.Name).ToArray();
 			Type[] parameterTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
 			object[] parametersOut = new object[parameterNames.Length];
@@ -109,11 +148,7 @@ namespace PlumeAPI.Modularization {
 
 			foreach(KeyValuePair<string, object> pair in parameters) {
 				int index = Array.IndexOf(parameterNames, pair.Key);
-				if(pair.Value is JToken) {
-					parametersOut[index] = ((JToken)pair.Value).ToObject(parameterTypes[index]);
-				} else {
-					parametersOut[index] = pair.Value;
-				}
+				parametersOut[index] = pair.Value;
 			}
 
 			return parametersOut;
@@ -128,7 +163,6 @@ namespace PlumeAPI.Modularization {
 			}
 			return null;
 		}
-
 
 		private bool LoadDefinition() {
 			try {
@@ -154,16 +188,16 @@ namespace PlumeAPI.Modularization {
 		}
 	}
 
+	public class ComponentDefinition : Dictionary<string, object> { }
+
 	public class InvalidEntityException : Exception {
-		string _filename;
 		string _message;
-		public InvalidEntityException(string filename, string message) {
-			_filename = filename;
+		public InvalidEntityException(string message) {
 			_message = message;
 		}
 
 		public override string ToString() {
-			return "Invalid entity in " + _filename + ": " + _message;
+			return "Invalid entity: " + _message;
 		}
 	}
 
